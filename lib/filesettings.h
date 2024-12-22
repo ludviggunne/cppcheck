@@ -60,7 +60,14 @@ public:
         return mSize;
     }
 
-    std::string updateSize();
+    std::string updateSize()
+    {
+        ssize_t ssize = Path::fileSize(mPath);
+        if (ssize < 0)
+            return "could not stat file '" + mPath + "': (errno: " + std::to_string(errno) + ")";
+        mSize = ssize;
+        return "";
+    }
 
 private:
     std::string mPath;
