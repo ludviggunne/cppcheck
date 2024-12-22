@@ -214,6 +214,13 @@ bool CmdLineParser::fillSettingsFromArgs(int argc, const char* const argv[])
 
         mFileSettings.clear();
 
+        for (auto &fs : fileSettings)
+        {
+            std::string error = fs.updateFileSize();
+            if (!error.empty())
+                mLogger.printError(error);
+        }
+
         // sort the markup last
         std::copy_if(fileSettings.cbegin(), fileSettings.cend(), std::back_inserter(mFileSettings), [&](const FileSettings &fs) {
             return !mSettings.library.markupFile(fs.filename()) || !mSettings.library.processMarkupAfterCode(fs.filename());
@@ -282,6 +289,13 @@ bool CmdLineParser::fillSettingsFromArgs(int argc, const char* const argv[])
         }
         else {
             files = std::move(filesResolved);
+        }
+
+        for (auto &f : files)
+        {
+            std::string error = f.updateSize();
+            if (!error.empty())
+                mLogger.printError(error);
         }
 
         // sort the markup last
