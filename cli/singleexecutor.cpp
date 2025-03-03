@@ -69,7 +69,7 @@ unsigned int SingleExecutor::check()
             mCppcheck.analyseClangTidy(fs);
     }
 
-    if (mCppcheck.analyseWholeProgram())
+    if (!mSettings.noCTU && mCppcheck.analyseWholeProgram())
         result++;
 
     if (mSettings.showtime == SHOWTIME_MODES::SHOWTIME_SUMMARY || mSettings.showtime == SHOWTIME_MODES::SHOWTIME_TOP5_SUMMARY)

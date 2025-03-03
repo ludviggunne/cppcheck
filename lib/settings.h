@@ -178,6 +178,9 @@ public:
     /** @brief check Emacs marker to detect extension-less and *.h files as C++ */
     bool cppHeaderProbe{};
 
+    /** @brief do not perform CTU analysis */
+    bool noCTU{};
+
     /** @brief Are we running from DACA script? */
     bool daca{};
 

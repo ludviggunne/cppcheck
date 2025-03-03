@@ -1005,6 +1005,10 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
                 mSettings.cppHeaderProbe = false;
             }
 
+            else if (std::strcmp(argv[i], "--no-ctu") == 0 || std::strcmp(argv[i], "-c")) {
+                mSettings.noCTU = true;
+            }
+
             // Write results in file
             else if (std::strncmp(argv[i], "--output-file=", 14) == 0)
                 mSettings.outputFile = Path::simplifyPath(argv[i] + 14);
@@ -1779,6 +1783,7 @@ void CmdLineParser::printHelp() const
         "    --max-ctu-depth=N    Max depth in whole program analysis. The default value\n"
         "                         is 2. A larger value will mean more errors can be found\n"
         "                         but also means the analysis will be slower.\n"
+        "    -c, --no-ctu         Disable whole program analysis (CTU).\n"
         "    --output-file=<file> Write results to file, rather than standard error.\n"
         "    --output-format=<format>\n"
         "                        Specify the output format. The available formats are:\n"
