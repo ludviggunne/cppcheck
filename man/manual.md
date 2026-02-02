@@ -8,8 +8,8 @@ documentclass: report
 
 # Introduction
 
-Cppcheck is an analysis tool for C/C++ code. It provides unique code analysis to detect bugs and focuses on detecting 
-undefined behaviour and dangerous coding constructs. The goal is to detect only real errors in the code, and generate 
+Cppcheck is an analysis tool for C/C++ code. It provides unique code analysis to detect bugs and focuses on detecting
+undefined behaviour and dangerous coding constructs. The goal is to detect only real errors in the code, and generate
 as few false positives (wrongly reported warnings) as possible. Cppcheck is designed to analyze your C/C++ code even
 if it has non-standard syntax, as is common in for example embedded projects.
 
@@ -94,20 +94,20 @@ If "path" is a folder, then Cppcheck will recursively check all source files in 
 
 ### Check files manually or use project file
 
-With Cppcheck you can check files manually by specifying files/paths to check and settings. Or you can use a build 
+With Cppcheck you can check files manually by specifying files/paths to check and settings. Or you can use a build
 environment, such as CMake or Visual Studio.
 
-We don't know which approach (project file or manual configuration) will give you the best results. It is recommended 
-that you try both. It is possible that you will get different results so that to find the largest amount of bugs you 
+We don't know which approach (project file or manual configuration) will give you the best results. It is recommended
+that you try both. It is possible that you will get different results so that to find the largest amount of bugs you
 need to use both approaches. Later chapters will describe this in more detail.
 
 ### Check files matching a given file filter
 
 With `--file-filter=<str>` you can configure file filter(s) and then only those files matching the filter will be checked.
 
-You can use `**`, `*` and `?` in the file filter pattern.  
-`**`: matches zero or more characters, including path separators  
-`*`: matches zero or more characters, excluding path separators  
+You can use `**`, `*` and `?` in the file filter pattern.
+`**`: matches zero or more characters, including path separators
+`*`: matches zero or more characters, excluding path separators
 `?`: matches any single character except path separators
 
 For example, this command below means that `src/test1.cpp` could be checked, but `src/file2.cpp` and `src/test/file1.cpp` will not be checked:
@@ -134,9 +134,9 @@ A file that is ignored will not be checked directly (the complete translation un
 
 > *Note*: If you want to filter out warnings for a header file then `-i` will not work. Use suppressions instead.
 
-You can use `**`, `*` and `?` in the pattern to specify excluded folders/files.  
-`**`: matches zero or more characters, including path separators  
-`*`: matches zero or more characters, excluding path separators  
+You can use `**`, `*` and `?` in the pattern to specify excluded folders/files.
+`**`: matches zero or more characters, including path separators
+`*`: matches zero or more characters, excluding path separators
 `?`: matches any single character except path separators
 
 A use case for `-i` is to check a project, but exclude certain files/folders:
@@ -157,7 +157,7 @@ Install `clang`. Then use Cppcheck option `--clang`.
 Cppcheck executes clang with the -ast-dump option, imports the output, converts it to Cppcheck's internal format, and then
 performs standard analysis.
 
-You can also pass a custom Clang executable to the option by using for example `--clang=clang-10`. You can also pass it 
+You can also pass a custom Clang executable to the option by using for example `--clang=clang-10`. You can also pass it
 with a path. On Windows it will append the `.exe` extension unless you use a path.
 
 ## Severities
@@ -178,17 +178,17 @@ stylistic issues, such as unused functions, redundant code, constness, operator 
 
 **performance**
 
-run time performance suggestions based on common knowledge, though it is not certain any measurable speed difference 
+run time performance suggestions based on common knowledge, though it is not certain any measurable speed difference
 will be achieved by fixing these messages.
 
 **portability**
 
-portability warnings. Implementation defined behavior. 64-bit portability. Some undefined behavior that probably works 
+portability warnings. Implementation defined behavior. 64-bit portability. Some undefined behavior that probably works
 "as you want", etc.
 
 **information**
 
-configuration problems, which does not relate to the syntactical correctness, but the used Cppcheck configuration could 
+configuration problems, which does not relate to the syntactical correctness, but the used Cppcheck configuration could
 be improved.
 
 ## Possible speedup analysis of template code
@@ -280,7 +280,7 @@ You can import and use Cppcheck GUI project files in the command line tool:
 
     cppcheck --project=foobar.cppcheck
 
-The Cppcheck GUI has a few options that are not available in the command line directly. To use these options you can import a GUI project file. 
+The Cppcheck GUI has a few options that are not available in the command line directly. To use these options you can import a GUI project file.
 The command line tool usage is kept intentionally simple and the options are therefore limited.
 
 To ignore certain folders in the project you can use `-i`. This will skip the analysis of source files in the `foo` folder.
@@ -424,15 +424,15 @@ Example:
 
 To add an include path, use `-I`, followed by the path.
 
-Cppcheck's preprocessor basically handles includes like any other preprocessor. However, while other preprocessors 
-stop working when they encounter a missing header, Cppcheck will just print an information message and continues 
+Cppcheck's preprocessor basically handles includes like any other preprocessor. However, while other preprocessors
+stop working when they encounter a missing header, Cppcheck will just print an information message and continues
 parsing the code.
 
-The purpose of this behaviour is that Cppcheck is meant to work without necessarily seeing the entire code. 
-Actually, it is recommended to not give all include paths. 
-While it is useful for Cppcheck to see the declaration of a class when checking the implementation of its members, 
-passing standard library headers is discouraged, because the analysis will not work fully and lead to a longer checking 
-time. For such cases, .cfg files are the preferred way to provide information about the implementation of functions and 
+The purpose of this behaviour is that Cppcheck is meant to work without necessarily seeing the entire code.
+Actually, it is recommended to not give all include paths.
+While it is useful for Cppcheck to see the declaration of a class when checking the implementation of its members,
+passing standard library headers is discouraged, because the analysis will not work fully and lead to a longer checking
+time. For such cases, .cfg files are the preferred way to provide information about the implementation of functions and
 types to Cppcheck, see below for more information.
 
 # Platform
@@ -512,9 +512,9 @@ The format for an error suppression is one of:
 
 The `error id` is the id that you want to suppress. The id of a warning is shown in brackets in the normal cppcheck text output.
 
-The `error id` and `filename` patterns may contain `**`, `*` or `?`.  
-`**`: matches zero or more characters, including path separators  
-`*`: matches zero or more characters, excluding path separators  
+The `error id` and `filename` patterns may contain `**`, `*` or `?`.
+`**`: matches zero or more characters, including path separators
+`*`: matches zero or more characters, excluding path separators
 `?`: matches any single character except path separators
 
 It is recommended to use forward-slash `/` in the filename pattern as path separator on all operating systems.
@@ -569,7 +569,7 @@ The usage of the suppressions file is as follows:
 
 ## Inline suppressions
 
-Suppressions can also be added directly in the code by adding comments that contain special keywords. 
+Suppressions can also be added directly in the code by adding comments that contain special keywords.
 Note that adding comments sacrifices the readability of the code somewhat.
 
 This code will normally generate an error message:
@@ -865,8 +865,8 @@ Many warnings have multiple locations. Example code:
         return 0;
     }
 
-There is a possible null pointer dereference at line 3. 
-Cppcheck can show how it came to that conclusion by showing extra location information. 
+There is a possible null pointer dereference at line 3.
+Cppcheck can show how it came to that conclusion by showing extra location information.
 You need to use both --template and --template-location at the command line, for example:
 
     cppcheck \
