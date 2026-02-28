@@ -363,7 +363,7 @@ private:
                        "    int a,b,c;\n"
                        "    a = b = c;\n"
                        "}");
-        ASSERT_EQUALS("[test.cpp:3:0]: (error) Uninitialized variable: c [legacyUninitvar]\n", errout_str());
+        ASSERT_EQUALS("[test.cpp:3:13]: (error) Uninitialized variable: c [legacyUninitvar]\n", errout_str());
 
         checkUninitVar("static void foo()\n"
                        "{\n"

@@ -183,12 +183,6 @@ private:
      */
     void simplifyStaticConst();
 
-    /**
-     * Simplify multiple assignments.
-     * Example: "a = b = c = 0;" => "a = 0; b = 0; c = 0;"
-     */
-    void simplifyVariableMultipleAssign();
-
 protected:
     /**
      * Simplify the 'C Alternative Tokens'
