@@ -6568,12 +6568,23 @@ void Tokenizer::simplifyHeadersAndUnusedTemplates()
                     } else {
                         Token *funcTok = closingBracket->next();
                         while (funcTok) {
-                            if (Token::Match(funcTok, "constexpr|static|inline|const|%type%|&|&&|*") && !Token::Match(funcTok, "%name% (")) {
+                            if (Token::Match(funcTok, "::|constexpr|static|inline|const|%type%|&|&&|*") && !Token::Match(funcTok, "%name% (")) {
                                 funcTok = funcTok->next();
+                                continue;
+                            }
+                            if (Token::simpleMatch(funcTok, "<")) {
+                                funcTok = funcTok->findClosingBracket();
+                                if (funcTok) {
+                                    funcTok = funcTok->next();
+                                } else {
+                                    break;
+                                }
                                 continue;
                             }
                             break;
                         }
+                        if (!funcTok)
+                            break;
                         if (!Token::Match(funcTok, "%name% (")) {
                             tok = funcTok;
                             continue;

@@ -3479,6 +3479,12 @@ struct S {
     }
 };
 
+template<typename T>
+std::vector<T> f_t_13() {
+    (void)(*((int*)0));
+    return {};
+}
+
 void f() {}
 """)
 
