@@ -431,6 +431,14 @@ static inline T* empty_if_null(T* p)
  */
 CPPCHECKLIB std::vector<std::string> splitString(const std::string& str, char sep);
 
+/**
+ * Split string by given separators, ignoring escaped or quoted separators.
+ * @param str The string to split
+ * @param sep The separators
+ * @return The list of separate strings (including empty ones). The whole input string if no separator found.
+ */
+CPPCHECKLIB std::vector<std::string> splitEscaped(const std::string& str, const char *sep);
+
 namespace utils {
     /**
      * Drop-in replacement for C++17's std::as_const

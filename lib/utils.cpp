@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <stack>
 #include <utility>
 
@@ -197,4 +198,67 @@ std::vector<std::string> splitString(const std::string& str, char sep)
         pos1 = pos2 + 1;
     }
     return l;
+}
+
+std::vector<std::string> splitEscaped(const std::string& str, const char *sep)
+{
+    std::vector<std::string> result;
+    std::string word;
+    enum { Skip, Take, Escape, String } state = Skip;
+
+    for (auto c : str) {
+        switch (state) {
+        case Skip:
+            if (c == '\\') {
+                state = Escape;
+                continue;
+            }
+            if (c == '\"') {
+                state = String;
+                continue;
+            }
+            if (!std::strchr(sep, c)) {
+                word.push_back(c);
+                state = Take;
+                continue;
+            }
+            continue;
+
+        case Take:
+            if (c == '\\') {
+                state = Escape;
+                continue;
+            }
+            if (c == '\"') {
+                state = String;
+                continue;
+            }
+            if (std::strchr(sep, c)) {
+                if (!word.empty())
+                    result.push_back(word);
+                word.clear();
+                state = Skip;
+                continue;
+            }
+            word.push_back(c);
+            continue;
+
+        case Escape:
+            word.push_back(c);
+            state = Take;
+            continue;
+
+        case String:
+            if (c == '\"') {
+                state = Take;
+                continue;
+            }
+            word.push_back(c);
+            continue;
+        }
+    }
+
+    if (state != Skip)
+        result.push_back(word);
+    return result;
 }
