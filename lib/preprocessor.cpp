@@ -770,15 +770,11 @@ void Preprocessor::getConfigs(const std::string &filename, const simplecpp::Toke
 
 static void splitcfg(const std::string &cfgStr, std::list<std::string> &defines, const std::string &defaultValue)
 {
-    for (std::string::size_type defineStartPos = 0U; defineStartPos < cfgStr.size();) {
-        const std::string::size_type defineEndPos = cfgStr.find(';', defineStartPos);
-        std::string def = (defineEndPos == std::string::npos) ? cfgStr.substr(defineStartPos) : cfgStr.substr(defineStartPos, defineEndPos - defineStartPos);
-        if (!defaultValue.empty() && def.find('=') == std::string::npos)
-            def += '=' + defaultValue;
-        defines.push_back(std::move(def));
-        if (defineEndPos == std::string::npos)
-            break;
-        defineStartPos = defineEndPos + 1U;
+    std::vector<std::string> cfgDefines = splitEscaped(cfgStr, ";");
+    for (auto &define : cfgDefines) {
+        if (!defaultValue.empty() && define.find('=') == std::string::npos)
+            define += '=' + defaultValue;
+        defines.push_back(std::move(define));
     }
 }
 

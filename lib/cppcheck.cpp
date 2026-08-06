@@ -540,7 +540,7 @@ static std::vector<picojson::value> executeAddon(const AddonInfo &addonInfo,
 static std::string getDefinesFlags(const std::string &semicolonSeparatedString)
 {
     std::string flags;
-    for (const std::string &d: split(semicolonSeparatedString, ";"))
+    for (const std::string &d: splitEscaped(semicolonSeparatedString, ";"))
         flags += "-D" + d + " ";
     return flags;
 }
@@ -1148,8 +1148,8 @@ unsigned int CppCheck::checkInternal(const FileWithDetails& file, const std::str
 
             if (!mSettings.userDefines.empty()) {
                 currentConfig = mSettings.userDefines;
-                const std::vector<std::string> v1(split(mSettings.userDefines, ";"));
-                for (const std::string &cfg: split(currCfg, ";")) {
+                const std::vector<std::string> v1(splitEscaped(mSettings.userDefines, ";"));
+                for (const std::string &cfg: splitEscaped(currCfg, ";")) {
                     if (std::find(v1.cbegin(), v1.cend(), cfg) == v1.cend()) {
                         currentConfig += ";" + cfg;
                     }
