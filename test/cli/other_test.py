@@ -4860,3 +4860,26 @@ def test_ipc_inline_suppressions(tmp_path):
     stdout_lines.sort()
     assert stdout_lines == stdout_exp
     assert stderr.splitlines() == []
+
+def test_semi_in_user_define(tmp_path):
+    test1_file = tmp_path / 'test.c'
+    with open(test1_file, "w") as f:
+        f.write('void f() { STATEMENTS_1 STATEMENTS_2 }')
+
+    args = [
+        '-q',
+        '-DSTATEMENTS_1=int a; int b;',
+        '-DSTATEMENTS_2=int x; int y;',
+        '--enable=style',
+        '--template={message}',
+        str(tmp_path)
+    ]
+
+    exitcode, stdout, stderr = cppcheck(args)
+    assert exitcode == 0
+    # assert stderr == ""
+    assert stderr == """Unused variable: a
+Unused variable: b
+Unused variable: x
+Unused variable: y
+"""
