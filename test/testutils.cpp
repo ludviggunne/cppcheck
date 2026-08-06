@@ -45,6 +45,7 @@ private:
         TEST_CASE(as_const);
         TEST_CASE(memoize);
         TEST_CASE(endsWith);
+        TEST_CASE(splitEscaped);
     }
 
     void isValidGlobPattern() const {
@@ -611,6 +612,27 @@ private:
         ASSERT(!::endsWith("", "test"));
         ASSERT(!::endsWith("tes", "test"));
         ASSERT(!::endsWith("2test", "2"));
+    }
+
+    #define testSplitEscaped(...) testSplitEscaped_(__FILE__,__LINE__,__VA_ARGS__)
+    void testSplitEscaped_(const char *file, int lineno, const std::string &str,
+                          const char *sep, std::vector<std::string> &&expected) const
+    {
+        const std::vector<std::string> actual = ::splitEscaped(str, sep);
+        ASSERT_EQUALS_LOC(expected.size(), actual.size(), file, lineno);
+        for (std::size_t i = 0; i < expected.size(); i++)
+            ASSERT_EQUALS_LOC(expected[i], actual[i], file, lineno);
+    }
+
+    void splitEscaped() const
+    {
+        testSplitEscaped("abc;def", ";", { "abc", "def" });
+        testSplitEscaped("abc\\;def", ";", { "abc;def" });
+        testSplitEscaped("\"abc;def\"", ";", { "abc;def" });
+        testSplitEscaped("\\\"abc;def\\\"", ";", { "\"abc", "def\"" });
+        testSplitEscaped(";", ";", {});
+        testSplitEscaped("abc;", ";", { "abc" });
+        testSplitEscaped(";def", ";", { "def" });
     }
 };
 
