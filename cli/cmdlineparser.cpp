@@ -450,6 +450,15 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
             if (define.find('=') == std::string::npos)
                 define += "=1";
 
+            // Escape semicolons
+            const std::string tmp = std::move(define);
+            define = "";
+            for (auto c : tmp) {
+                if (c == ';')
+                    define.push_back('\\');
+                define.push_back(c);
+            }
+
             if (!mSettings.userDefines.empty())
                 mSettings.userDefines += ";";
             mSettings.userDefines += define;
