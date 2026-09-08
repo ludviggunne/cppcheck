@@ -4864,7 +4864,7 @@ def test_ipc_inline_suppressions(tmp_path):
     assert stderr.splitlines() == []
 
 test_redundant_file_reads_params = [
-    ([],                       3),
+    ([],                       2),
     (['--suppress=zerodiv'],   1),
     (['--template=cppcheck1'], 1),
     (['--xml'],                1),
