@@ -662,7 +662,7 @@ void StdLogger::reportErr(const ErrorMessage &msg)
 
     // TODO: there should be no need for verbose and default messages here
     const bool noContext = mSettings.outputFormat == Settings::OutputFormat::xml ||
-                        mSettings.outputFormat == Settings::OutputFormat::sarif;
+                           mSettings.outputFormat == Settings::OutputFormat::sarif;
     const ErrorMessage::SourceLineCallback callback = noContext ? nullptr : getSourceLineCallback();
     const std::string msgStr =
         msgCopy.toString(mSettings.verbose, mSettings.templateFormat,

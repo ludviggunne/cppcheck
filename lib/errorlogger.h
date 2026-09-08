@@ -106,11 +106,11 @@ public:
     };
 
     using SourceLineCallback = std::function<std::string (
-        const std::string &file,
-        int linenr,
-        int column,
-        const char endl[],
-        int cachePrio)>;
+                                                 const std::string &file,
+                                                 int linenr,
+                                                 int column,
+                                                 const char endl[],
+                                                 int cachePrio)>;
 
     static std::string directSourceLineCallback(const std::string &file,
                                                 int linenr,
@@ -327,8 +327,8 @@ private:
     struct SourceCacheEntry {
         explicit SourceCacheEntry(const std::string &file, int prio);
 
-        int           prio;
-        std::string   file;
+        int prio;
+        std::string file;
         std::ifstream stream;
     };
 

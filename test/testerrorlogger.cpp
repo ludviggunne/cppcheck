@@ -470,7 +470,6 @@ private:
         std::list<ErrorMessage::FileLocation> locs = { code };
         ErrorMessage msg(std::move(locs), "", Severity::error, "Programming error.\nVerbose error", "errorId", Certainty::normal);
         ASSERT_EQUALS(1, msg.callStack.size());
-        const bool noCode = true;
         ASSERT_EQUALS("code.cpp:3:5: error: Programming error. [errorId]\n",
                       msg.toString(false, "{file}:{line}:{column}: {severity}:{inconclusive:inconclusive:} {message} [{id}]\n{code}", "", nullptr));
     }

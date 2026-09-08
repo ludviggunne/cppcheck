@@ -731,6 +731,8 @@ std::string ErrorMessage::directSourceLineCallback(const std::string &file,
                                                    const char endl[],
                                                    int cachePrio)
 {
+    (void) cachePrio;
+
     std::ifstream fin(file);
     std::string line;
 
@@ -785,11 +787,11 @@ std::string ErrorMessage::toString(bool verbose,
             else
                 endl = "\r";
             const std::string code = sourceLineCallback == nullptr ?
-                "" : sourceLineCallback(callStack.back().getOrigFile(),
-                                        callStack.back().line,
-                                        callStack.back().column,
-                                        endl,
-                                        0);
+                                     "" : sourceLineCallback(callStack.back().getOrigFile(),
+                                                             callStack.back().line,
+                                                             callStack.back().column,
+                                                             endl,
+                                                             0);
             findAndReplace(result, "{code}", code);
         }
     } else {
@@ -804,8 +806,8 @@ std::string ErrorMessage::toString(bool verbose,
         replace(result, callStackSubstitutionMap);
     }
 
-    int cachePrio = -1;
     if (!templateLocation.empty() && callStack.size() >= 2U) {
+        int cachePrio = -1;
         for (const FileLocation &fileLocation : callStack) {
             std::string text = templateLocation;
 
@@ -823,11 +825,11 @@ std::string ErrorMessage::toString(bool verbose,
                 else
                     endl = "\r";
                 const std::string code = sourceLineCallback == nullptr ?
-                    "" : sourceLineCallback(fileLocation.getOrigFile(),
-                                            fileLocation.line,
-                                            fileLocation.column,
-                                            endl,
-                                            cachePrio--);
+                                         "" : sourceLineCallback(fileLocation.getOrigFile(),
+                                                                 fileLocation.line,
+                                                                 fileLocation.column,
+                                                                 endl,
+                                                                 cachePrio--);
                 findAndReplace(text, "{code}", code);
             }
             result += '\n' + text;
@@ -1291,8 +1293,7 @@ ErrorLogger::SourceCacheEntry::SourceCacheEntry(const std::string &file, int pri
     : prio(prio)
     , file(file)
     , stream(std::ifstream(file))
-{
-}
+{}
 
 std::string ErrorLogger::sourceLineCallback(const std::string &file,
                                             int linenr,
@@ -1310,8 +1311,10 @@ std::string ErrorLogger::sourceLineCallback(const std::string &file,
     const auto existing = std::find_if(
         mSourceCache.begin(),
         mSourceCache.end(),
-        [&] (const std::shared_ptr<SourceCacheEntry> &e) { return e->file == file; }
-    );
+        [&] (const std::shared_ptr<SourceCacheEntry> &e) {
+        return e->file == file;
+    }
+        );
 
     if (existing == mSourceCache.end()) {
         if (mSourceCache.size() == mSourceCacheSize) {
