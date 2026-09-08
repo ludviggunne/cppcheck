@@ -638,23 +638,6 @@ std::string ErrorMessage::toXML() const
     return printer.CStr();
 }
 
-// TODO: read info from some shared resource instead?
-static std::string readCode(const std::string &file, int linenr, int column, const char endl[])
-{
-    std::ifstream fin(file);
-    std::string line;
-    while (linenr > 0 && std::getline(fin,line)) {
-        linenr--;
-    }
-    const std::string::size_type endPos = line.find_last_not_of("\r\n\t ");
-    if (endPos + 1 < line.size())
-        line.erase(endPos + 1);
-    std::string::size_type pos = 0;
-    while ((pos = line.find('\t', pos)) != std::string::npos)
-        line[pos] = ' ';
-    return line + endl + std::string((column>0 ? column-1 : 0), ' ') + '^';
-}
-
 static void replaceSpecialChars(std::string& source)
 {
     // Support a few special characters to allow to specific formatting, see http://sourceforge.net/apps/phpbb/cppcheck/viewtopic.php?f=4&t=494&sid=21715d362c0dbafd3791da4d9522f814
@@ -729,7 +712,38 @@ static void replaceColors(std::string& source, bool erase) {
         replace(source, substitutionMapErase);
 }
 
-std::string ErrorMessage::toString(bool verbose, const std::string &templateFormat, const std::string &templateLocation, bool noCode) const
+static std::string formatLine(std::string line, int column, const char endl[])
+{
+    const std::string::size_type endPos = line.find_last_not_of("\r\n\t ");
+    if (endPos + 1 < line.size())
+        line.erase(endPos + 1);
+
+    std::string::size_type pos = 0;
+    while ((pos = line.find('\t', pos)) != std::string::npos)
+        line[pos] = ' ';
+
+    return line + endl + std::string((column>0 ? column-1 : 0), ' ') + '^';
+}
+
+std::string ErrorMessage::directSourceLineCallback(const std::string &file,
+                                                   int linenr,
+                                                   int column,
+                                                   const char endl[],
+                                                   int cachePrio)
+{
+    std::ifstream fin(file);
+    std::string line;
+
+    while (linenr > 0 && std::getline(fin, line))
+        --linenr;
+
+    return formatLine(line, column, endl);
+}
+
+std::string ErrorMessage::toString(bool verbose,
+                                   const std::string &templateFormat,
+                                   const std::string &templateLocation,
+                                   SourceLineCallback sourceLineCallback) const
 {
     assert(!templateFormat.empty());
 
@@ -770,7 +784,12 @@ std::string ErrorMessage::toString(bool verbose, const std::string &templateForm
                 endl = "\r\n";
             else
                 endl = "\r";
-            const std::string code = noCode ? "" : readCode(callStack.back().getOrigFile(), callStack.back().line, callStack.back().column, endl);
+            const std::string code = sourceLineCallback == nullptr ?
+                "" : sourceLineCallback(callStack.back().getOrigFile(),
+                                        callStack.back().line,
+                                        callStack.back().column,
+                                        endl,
+                                        0);
             findAndReplace(result, "{code}", code);
         }
     } else {
@@ -785,6 +804,7 @@ std::string ErrorMessage::toString(bool verbose, const std::string &templateForm
         replace(result, callStackSubstitutionMap);
     }
 
+    int cachePrio = -1;
     if (!templateLocation.empty() && callStack.size() >= 2U) {
         for (const FileLocation &fileLocation : callStack) {
             std::string text = templateLocation;
@@ -802,7 +822,12 @@ std::string ErrorMessage::toString(bool verbose, const std::string &templateForm
                     endl = "\r\n";
                 else
                     endl = "\r";
-                const std::string code = noCode ? "" : readCode(fileLocation.getOrigFile(), fileLocation.line, fileLocation.column, endl);
+                const std::string code = sourceLineCallback == nullptr ?
+                    "" : sourceLineCallback(fileLocation.getOrigFile(),
+                                            fileLocation.line,
+                                            fileLocation.column,
+                                            endl,
+                                            cachePrio--);
                 findAndReplace(text, "{code}", code);
             }
             result += '\n' + text;
@@ -1260,4 +1285,72 @@ std::map<std::string, std::string> createGuidelineMapping(ReportType reportType)
     }
 
     return guidelineMapping;
+}
+
+ErrorLogger::SourceCacheEntry::SourceCacheEntry(const std::string &file, int prio)
+    : prio(prio)
+    , file(file)
+    , stream(std::ifstream(file))
+{
+}
+
+std::string ErrorLogger::sourceLineCallback(const std::string &file,
+                                            int linenr,
+                                            int column,
+                                            const char endl[],
+                                            int cachePrio)
+{
+    // For sorting cache entries by priority
+    const auto heapCompare = [](const std::shared_ptr<SourceCacheEntry> &lhs, const std::shared_ptr<SourceCacheEntry> &rhs) {
+        return lhs->prio > rhs->prio;
+    };
+
+    std::shared_ptr<SourceCacheEntry> entry = nullptr;
+
+    const auto existing = std::find_if(
+        mSourceCache.begin(),
+        mSourceCache.end(),
+        [&] (const std::shared_ptr<SourceCacheEntry> &e) { return e->file == file; }
+    );
+
+    if (existing == mSourceCache.end()) {
+        if (mSourceCache.size() == mSourceCacheSize) {
+            // Evict the cache entry with lowest priority
+            std::pop_heap(mSourceCache.begin(), mSourceCache.end(), heapCompare);
+            mSourceCache.pop_back();
+        }
+
+        // Insert new entry
+        entry = std::make_shared<SourceCacheEntry>(file, cachePrio);
+        mSourceCache.push_back(entry);
+        std::push_heap(mSourceCache.begin(), mSourceCache.end(), heapCompare);
+    } else {
+        entry = *existing;
+        if (entry->prio < cachePrio) {
+            // Update priority and sort cache
+            entry->prio = cachePrio;
+            std::make_heap(mSourceCache.begin(), mSourceCache.end(), heapCompare);
+        }
+    }
+
+    entry->stream.clear();
+    entry->stream.seekg(0);
+
+    std::string line;
+    while (linenr > 0 && std::getline(entry->stream, line))
+        linenr--;
+
+    return formatLine(line, column, endl);
+}
+
+ErrorMessage::SourceLineCallback ErrorLogger::getSourceLineCallback()
+{
+    return [this](const std::string &file,
+                  int linenr,
+                  int column,
+                  const char endl[],
+                  int cachePrio)
+    {
+        return sourceLineCallback(file, linenr, column, endl, cachePrio);
+    };
 }

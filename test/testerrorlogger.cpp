@@ -472,7 +472,7 @@ private:
         ASSERT_EQUALS(1, msg.callStack.size());
         const bool noCode = true;
         ASSERT_EQUALS("code.cpp:3:5: error: Programming error. [errorId]\n",
-                      msg.toString(false, "{file}:{line}:{column}: {severity}:{inconclusive:inconclusive:} {message} [{id}]\n{code}", "", noCode));
+                      msg.toString(false, "{file}:{line}:{column}: {severity}:{inconclusive:inconclusive:} {message} [{id}]\n{code}", "", nullptr));
     }
 
     void CustomFormat() const {
