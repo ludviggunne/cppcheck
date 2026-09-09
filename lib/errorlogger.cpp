@@ -807,7 +807,7 @@ std::string ErrorMessage::toString(bool verbose,
     }
 
     if (!templateLocation.empty() && callStack.size() >= 2U) {
-        int cachePrio = -1;
+        int cachePrio = 1 - static_cast<int>(callStack.size());
         for (const FileLocation &fileLocation : callStack) {
             std::string text = templateLocation;
 
@@ -829,7 +829,7 @@ std::string ErrorMessage::toString(bool verbose,
                                                                  fileLocation.line,
                                                                  fileLocation.column,
                                                                  endl,
-                                                                 cachePrio--);
+                                                                 cachePrio++);
                 findAndReplace(text, "{code}", code);
             }
             result += '\n' + text;
