@@ -174,7 +174,7 @@ public:
     std::string toString(bool verbose,
                          const std::string &templateFormat,
                          const std::string &templateLocation,
-                         SourceLineCallback sourceLineCallback = directSourceLineCallback) const;
+                         const SourceLineCallback &sourceLineCallback = directSourceLineCallback) const;
 
     std::string serialize() const;
     /**

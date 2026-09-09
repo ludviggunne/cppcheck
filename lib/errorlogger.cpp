@@ -745,7 +745,7 @@ std::string ErrorMessage::directSourceLineCallback(const std::string &file,
 std::string ErrorMessage::toString(bool verbose,
                                    const std::string &templateFormat,
                                    const std::string &templateLocation,
-                                   SourceLineCallback sourceLineCallback) const
+                                   const SourceLineCallback &sourceLineCallback) const
 {
     assert(!templateFormat.empty());
 
