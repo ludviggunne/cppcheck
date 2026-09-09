@@ -322,7 +322,9 @@ public:
 
 private:
     static const std::set<std::string> mCriticalErrorIds;
-    static const std::size_t mSourceCacheSize = 4;
+
+protected:
+    virtual std::size_t getSourceCacheSize() const { return 4; };
 
     struct SourceCacheEntry {
         explicit SourceCacheEntry(const std::string &file, int prio);

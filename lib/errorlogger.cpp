@@ -1326,7 +1326,7 @@ std::string ErrorLogger::sourceLineCallback(const std::string &file,
         );
 
     if (existing == mSourceCache.end()) {
-        if (mSourceCache.size() == mSourceCacheSize) {
+        if (mSourceCache.size() == getSourceCacheSize()) {
             // Evict the cache entry with lowest priority
             std::pop_heap(mSourceCache.begin(), mSourceCache.end(), heapCompare);
             mSourceCache.pop_back();

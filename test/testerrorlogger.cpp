@@ -83,6 +83,8 @@ private:
         TEST_CASE(isCriticalErrorId);
 
         TEST_CASE(TestReportType);
+
+        TEST_CASE(ErrorLoggerSourceCache);
     }
 
     void TestPatternSearchReplace(const std::string& idPlaceholder, const std::string& id) const {
@@ -864,6 +866,201 @@ private:
     void isCriticalErrorId() const {
         // It does not abort all the analysis of the file. Like "missingInclude" there can be false negatives.
         ASSERT_EQUALS(false, ErrorLogger::isCriticalErrorId("misra-config"));
+    }
+
+    class TestSourceCacheLogger : public ErrorLogger {
+    public:
+        friend class TestErrorLogger;
+
+        virtual void reportOut(const std::string &outmsg, Color c)
+        {
+            (void) outmsg;
+            (void) c;
+        }
+
+        virtual void reportErr(const ErrorMessage &msg)
+        {
+            (void) msg.toString(false, "{code}", "{code}", getSourceLineCallback());
+        }
+
+        virtual void reportMetric(const std::string &metric)
+        {
+            (void) metric;
+        }
+
+        void clearCache() { mSourceCache.clear(); }
+
+        struct Match {
+            std::string file;
+            int prio;
+        };
+
+    private:
+        // Override this in case it's changed in the main implementation
+        virtual std::size_t getSourceCacheSize() const override { return 4; }
+    };
+
+    TestSourceCacheLogger testSourceCacheLogger;
+
+    #define testCacheContent(...) testCacheContent_(__FILE__,__LINE__,__VA_ARGS__)
+    void testCacheContent_(const char *testfile,
+                           int testline,
+                           const std::string &file,
+                           std::vector<std::string> &&callstackFiles,
+                           std::vector<TestSourceCacheLogger::Match> &&content)
+    {
+        const auto heapCompare = [](const std::shared_ptr<ErrorLogger::SourceCacheEntry> &lhs,
+                                    const std::shared_ptr<ErrorLogger::SourceCacheEntry> &rhs)
+        {
+            return *lhs < *rhs;
+        };
+
+        std::list<ErrorMessage::FileLocation> callstack;
+        for (const auto &file : callstackFiles)
+            callstack.emplace_back(file, 1, 1);
+
+        const ErrorMessage msg(callstack,
+                               file,
+                               Severity::warning,
+                               "Made up message",
+                               "made-up-id",
+                               Certainty::normal);
+        testSourceCacheLogger.reportErr(msg);
+
+        auto copy = testSourceCacheLogger.mSourceCache;
+        ASSERT_EQUALS(content.size(), copy.size());
+
+        std::make_heap(copy.begin(), copy.end(), heapCompare);
+        for (const auto match : content) {
+            std::pop_heap(copy.begin(), copy.end(), heapCompare);
+            ASSERT_EQUALS(match.file, copy.back()->file);
+            ASSERT_EQUALS(match.prio, copy.back()->prio);
+            copy.pop_back();
+        }
+    }
+
+    void ErrorLoggerSourceCache() {
+        const char *content = "first line\n"
+                              "second line\n"
+                              "third line\n";
+
+        const ScopedFile files[] = {
+            { "1.txt", content },
+            { "2.txt", content },
+            { "3.txt", content },
+            { "4.txt", content },
+            { "5.txt", content },
+        };
+
+        testCacheContent(
+            "1.txt",
+            {
+                "1.txt",
+            },
+            {
+                { "1.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "2.txt",
+            {
+                "2.txt",
+            },
+            {
+                { "1.txt", -1 },
+                { "2.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "1.txt",
+            {
+                "1.txt",
+            },
+            {
+                { "2.txt", -1 },
+                { "1.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "3.txt",
+            {
+                "3.txt",
+            },
+            {
+                { "2.txt", -2 },
+                { "1.txt", -1 },
+                { "3.txt", 0 },
+            }
+        );
+
+        testSourceCacheLogger.clearCache();
+
+        testCacheContent(
+            "1.txt",
+            {
+                "4.txt",
+                "3.txt",
+                "2.txt",
+                "1.txt",
+            },
+            {
+                { "4.txt", -6 },
+                { "3.txt", -4 },
+                { "2.txt", -2 },
+                { "1.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "1.txt",
+            {
+                "5.txt",
+                "3.txt",
+                "2.txt",
+                "1.txt",
+            },
+            {
+                { "5.txt", -6 },
+                { "3.txt", -4 },
+                { "2.txt", -2 },
+                { "1.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "2.txt",
+            {
+                "5.txt",
+                "4.txt",
+                "3.txt",
+                "2.txt",
+            },
+            {
+                { "1.txt", -5 },
+                { "4.txt", -4 },
+                { "3.txt", -2 },
+                { "2.txt", 0 },
+            }
+        );
+
+        testCacheContent(
+            "2.txt",
+            {
+                "5.txt",
+                "4.txt",
+                "3.txt",
+                "2.txt",
+            },
+            {
+                { "5.txt", -6 },
+                { "4.txt", -4 },
+                { "3.txt", -2 },
+                { "2.txt", 0 },
+            }
+        );
     }
 };
 
