@@ -1295,16 +1295,25 @@ ErrorLogger::SourceCacheEntry::SourceCacheEntry(const std::string &file, int pri
     , stream(std::ifstream(file))
 {}
 
+bool ErrorLogger::SourceCacheEntry::operator<(const ErrorLogger::SourceCacheEntry &rhs) const
+{
+    return (prio > rhs.prio) ||
+           (prio == rhs.prio && file < rhs.file);
+}
+
 std::string ErrorLogger::sourceLineCallback(const std::string &file,
                                             int linenr,
                                             int column,
                                             const char endl[],
                                             int cachePrio)
 {
-    // For sorting cache entries by priority
     const auto heapCompare = [](const std::shared_ptr<SourceCacheEntry> &lhs, const std::shared_ptr<SourceCacheEntry> &rhs) {
-        return lhs->prio > rhs->prio;
+        return *lhs < *rhs;
     };
+
+    // Decrease priority for all cache entries
+    for (auto &entry : mSourceCache)
+        --entry->prio;
 
     std::shared_ptr<SourceCacheEntry> entry = nullptr;
 

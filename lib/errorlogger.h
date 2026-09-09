@@ -330,6 +330,8 @@ private:
         int prio;
         std::string file;
         std::ifstream stream;
+
+        bool operator<(const SourceCacheEntry &rhs) const;
     };
 
     std::vector<std::shared_ptr<SourceCacheEntry>> mSourceCache;
