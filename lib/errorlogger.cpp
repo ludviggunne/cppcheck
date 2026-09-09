@@ -1292,13 +1292,28 @@ std::map<std::string, std::string> createGuidelineMapping(ReportType reportType)
 ErrorLogger::SourceCacheEntry::SourceCacheEntry(const std::string &file, int prio)
     : prio(prio)
     , file(file)
-    , stream(std::ifstream(file))
+    , mStream(std::ifstream(file))
+    , mLinenr(0)
 {}
 
 bool ErrorLogger::SourceCacheEntry::operator<(const ErrorLogger::SourceCacheEntry &rhs) const
 {
     return (prio > rhs.prio) ||
            (prio == rhs.prio && file < rhs.file);
+}
+
+std::string ErrorLogger::SourceCacheEntry::getLine(int linenr)
+{
+    if (linenr < mLinenr) {
+        mLinenr = 0;
+        mStream.clear();
+        mStream.seekg(0);
+    }
+
+    while (mLinenr < linenr && std::getline(mStream, mLine))
+        mLinenr++;
+
+    return mLine;
 }
 
 std::string ErrorLogger::sourceLineCallback(const std::string &file,
@@ -1345,14 +1360,7 @@ std::string ErrorLogger::sourceLineCallback(const std::string &file,
         }
     }
 
-    entry->stream.clear();
-    entry->stream.seekg(0);
-
-    std::string line;
-    while (linenr > 0 && std::getline(entry->stream, line))
-        linenr--;
-
-    return formatLine(line, column, endl);
+    return formatLine(entry->getLine(linenr), column, endl);
 }
 
 ErrorMessage::SourceLineCallback ErrorLogger::getSourceLineCallback()

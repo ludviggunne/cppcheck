@@ -326,14 +326,21 @@ private:
 protected:
     virtual std::size_t getSourceCacheSize() const { return 4; };
 
-    struct SourceCacheEntry {
+    class SourceCacheEntry {
+    public:
         explicit SourceCacheEntry(const std::string &file, int prio);
 
         int prio;
         std::string file;
-        std::ifstream stream;
 
         bool operator<(const SourceCacheEntry &rhs) const;
+
+        std::string getLine(int linenr);
+
+    private:
+        std::ifstream mStream;
+        std::string mLine;
+        int mLinenr;
     };
 
     std::vector<std::shared_ptr<SourceCacheEntry>> mSourceCache;
