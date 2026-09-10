@@ -326,9 +326,9 @@ private:
 protected:
     virtual std::size_t getSourceCacheSize() const {
         return 4;
-    };
+    }
 
-    class SourceCacheEntry {
+    class CPPCHECKLIB SourceCacheEntry {
     public:
         explicit SourceCacheEntry(const std::string &file, int prio);
 
@@ -342,7 +342,7 @@ protected:
     private:
         std::ifstream mStream;
         std::string mLine;
-        int mLinenr;
+        int mLinenr{0};
     };
 
     std::vector<std::shared_ptr<SourceCacheEntry>> mSourceCache;

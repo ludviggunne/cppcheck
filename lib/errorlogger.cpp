@@ -1293,7 +1293,6 @@ ErrorLogger::SourceCacheEntry::SourceCacheEntry(const std::string &file, int pri
     : prio(prio)
     , file(file)
     , mStream(std::ifstream(file))
-    , mLinenr(0)
 {}
 
 bool ErrorLogger::SourceCacheEntry::operator<(const ErrorLogger::SourceCacheEntry &rhs) const
@@ -1306,6 +1305,7 @@ std::string ErrorLogger::SourceCacheEntry::getLine(int linenr)
 {
     if (linenr < mLinenr) {
         mLinenr = 0;
+        mLine.clear();
         mStream.clear();
         mStream.seekg(0);
     }

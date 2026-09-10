@@ -872,18 +872,18 @@ private:
     public:
         friend class TestErrorLogger;
 
-        virtual void reportOut(const std::string &outmsg, Color c)
+        void reportOut(const std::string &outmsg, Color c) override
         {
             (void) outmsg;
             (void) c;
         }
 
-        virtual void reportErr(const ErrorMessage &msg)
+        void reportErr(const ErrorMessage &msg) override
         {
             (void) msg.toString(false, "{code}", "{code}", getSourceLineCallback());
         }
 
-        virtual void reportMetric(const std::string &metric)
+        void reportMetric(const std::string &metric) override
         {
             (void) metric;
         }
@@ -899,7 +899,7 @@ private:
 
     private:
         // Override this in case it's changed in the main implementation
-        virtual std::size_t getSourceCacheSize() const override {
+        std::size_t getSourceCacheSize() const override {
             return 4;
         }
     };
@@ -910,8 +910,8 @@ private:
     void testCacheContent_(const char *testfile,
                            int testline,
                            const std::string &file,
-                           std::vector<std::string> &&callstackFiles,
-                           std::vector<TestSourceCacheLogger::Match> &&content)
+                           const std::vector<std::string> &callstackFiles,
+                           const std::vector<TestSourceCacheLogger::Match> &content)
     {
         const auto heapCompare = [](const std::shared_ptr<ErrorLogger::SourceCacheEntry> &lhs,
                                     const std::shared_ptr<ErrorLogger::SourceCacheEntry> &rhs)
@@ -920,8 +920,12 @@ private:
         };
 
         std::list<ErrorMessage::FileLocation> callstack;
-        for (const auto &file : callstackFiles)
-            callstack.emplace_back(file, 1, 1);
+        std::transform(callstackFiles.cbegin(),
+                       callstackFiles.cend(),
+                       std::back_inserter(callstack),
+                       [](const std::string &filename) {
+            return ErrorMessage::FileLocation(filename, 1, 1);
+        });
 
         const ErrorMessage msg(callstack,
                                file,
@@ -935,10 +939,10 @@ private:
         ASSERT_EQUALS(content.size(), copy.size());
 
         std::make_heap(copy.begin(), copy.end(), heapCompare);
-        for (const auto match : content) {
+        for (const auto &match : content) {
             std::pop_heap(copy.begin(), copy.end(), heapCompare);
-            ASSERT_EQUALS(match.file, copy.back()->file);
-            ASSERT_EQUALS(match.prio, copy.back()->prio);
+            ASSERT_EQUALS_LOC(match.file, copy.back()->file, testfile, testline);
+            ASSERT_EQUALS_LOC(match.prio, copy.back()->prio, testfile, testline);
             copy.pop_back();
         }
     }
@@ -948,13 +952,11 @@ private:
                               "second line\n"
                               "third line\n";
 
-        const ScopedFile files[] = {
-            { "1.txt", content },
-            { "2.txt", content },
-            { "3.txt", content },
-            { "4.txt", content },
-            { "5.txt", content },
-        };
+        ScopedFile file1("1.txt", content);
+        ScopedFile file2("2.txt", content);
+        ScopedFile file3("3.txt", content);
+        ScopedFile file4("4.txt", content);
+        ScopedFile file5("5.txt", content);
 
         testCacheContent(
             "1.txt",
