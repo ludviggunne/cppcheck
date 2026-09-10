@@ -324,7 +324,9 @@ private:
     static const std::set<std::string> mCriticalErrorIds;
 
 protected:
-    virtual std::size_t getSourceCacheSize() const { return 4; };
+    virtual std::size_t getSourceCacheSize() const {
+        return 4;
+    };
 
     class SourceCacheEntry {
     public:

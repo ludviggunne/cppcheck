@@ -888,7 +888,9 @@ private:
             (void) metric;
         }
 
-        void clearCache() { mSourceCache.clear(); }
+        void clearCache() {
+            mSourceCache.clear();
+        }
 
         struct Match {
             std::string file;
@@ -897,7 +899,9 @@ private:
 
     private:
         // Override this in case it's changed in the main implementation
-        virtual std::size_t getSourceCacheSize() const override { return 4; }
+        virtual std::size_t getSourceCacheSize() const override {
+            return 4;
+        }
     };
 
     TestSourceCacheLogger testSourceCacheLogger;
@@ -954,113 +958,113 @@ private:
 
         testCacheContent(
             "1.txt",
-            {
-                "1.txt",
-            },
-            {
-                { "1.txt", 0 },
-            }
-        );
+        {
+            "1.txt",
+        },
+        {
+            { "1.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "2.txt",
-            {
-                "2.txt",
-            },
-            {
-                { "1.txt", -1 },
-                { "2.txt", 0 },
-            }
-        );
+        {
+            "2.txt",
+        },
+        {
+            { "1.txt", -1 },
+            { "2.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "1.txt",
-            {
-                "1.txt",
-            },
-            {
-                { "2.txt", -1 },
-                { "1.txt", 0 },
-            }
-        );
+        {
+            "1.txt",
+        },
+        {
+            { "2.txt", -1 },
+            { "1.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "3.txt",
-            {
-                "3.txt",
-            },
-            {
-                { "2.txt", -2 },
-                { "1.txt", -1 },
-                { "3.txt", 0 },
-            }
-        );
+        {
+            "3.txt",
+        },
+        {
+            { "2.txt", -2 },
+            { "1.txt", -1 },
+            { "3.txt", 0 },
+        }
+            );
 
         testSourceCacheLogger.clearCache();
 
         testCacheContent(
             "1.txt",
-            {
-                "4.txt",
-                "3.txt",
-                "2.txt",
-                "1.txt",
-            },
-            {
-                { "4.txt", -6 },
-                { "3.txt", -4 },
-                { "2.txt", -2 },
-                { "1.txt", 0 },
-            }
-        );
+        {
+            "4.txt",
+            "3.txt",
+            "2.txt",
+            "1.txt",
+        },
+        {
+            { "4.txt", -6 },
+            { "3.txt", -4 },
+            { "2.txt", -2 },
+            { "1.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "1.txt",
-            {
-                "5.txt",
-                "3.txt",
-                "2.txt",
-                "1.txt",
-            },
-            {
-                { "5.txt", -6 },
-                { "3.txt", -4 },
-                { "2.txt", -2 },
-                { "1.txt", 0 },
-            }
-        );
+        {
+            "5.txt",
+            "3.txt",
+            "2.txt",
+            "1.txt",
+        },
+        {
+            { "5.txt", -6 },
+            { "3.txt", -4 },
+            { "2.txt", -2 },
+            { "1.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "2.txt",
-            {
-                "5.txt",
-                "4.txt",
-                "3.txt",
-                "2.txt",
-            },
-            {
-                { "1.txt", -5 },
-                { "4.txt", -4 },
-                { "3.txt", -2 },
-                { "2.txt", 0 },
-            }
-        );
+        {
+            "5.txt",
+            "4.txt",
+            "3.txt",
+            "2.txt",
+        },
+        {
+            { "1.txt", -5 },
+            { "4.txt", -4 },
+            { "3.txt", -2 },
+            { "2.txt", 0 },
+        }
+            );
 
         testCacheContent(
             "2.txt",
-            {
-                "5.txt",
-                "4.txt",
-                "3.txt",
-                "2.txt",
-            },
-            {
-                { "5.txt", -6 },
-                { "4.txt", -4 },
-                { "3.txt", -2 },
-                { "2.txt", 0 },
-            }
-        );
+        {
+            "5.txt",
+            "4.txt",
+            "3.txt",
+            "2.txt",
+        },
+        {
+            { "5.txt", -6 },
+            { "4.txt", -4 },
+            { "3.txt", -2 },
+            { "2.txt", 0 },
+        }
+            );
     }
 };
 
