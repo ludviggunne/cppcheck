@@ -4907,13 +4907,23 @@ void f(int x) {
     assert proc.returncode == 0
     assert stderr.splitlines()[-1].strip() == f'{expected} total'.encode('utf-8')
 
+test_errorlogger_sourcecache_params = [
+    ([]),
+    (["-j4", "--executor=process"]),
+    (["-j4", "--executor=thread"]),
+]
+
 @__strace_decorator
-def test_errorlogger_sourcecache(tmpdir):
+@pytest.mark.parametrize('extra_flags', test_errorlogger_sourcecache_params)
+def test_errorlogger_sourcecache(tmpdir, extra_flags):
     header_pathname = os.path.join(tmpdir, 'header.h')
     file_1_pathname = os.path.join(tmpdir, 'file_1.c')
     file_2_pathname = os.path.join(tmpdir, 'file_2.c')
     file_3_pathname = os.path.join(tmpdir, 'file_3.c')
     output_pathname = os.path.join(tmpdir, 'out.txt')
+    builddir_pathname = os.path.join(tmpdir, 'builddir')
+
+    os.mkdir(builddir_pathname)
 
     # Project setup that results in error paths
     # spanning multiple files (ctuuninitvar)
@@ -4978,10 +4988,11 @@ int func_3(void)
          '-q',
          '--enable=all',
          f'--output-file={output_pathname}',
+         f'--cppcheck-build-dir={builddir_pathname}',
          file_1_pathname,
          file_2_pathname,
          file_3_pathname,
-    ]
+    ] + extra_flags
 
     proc = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     _, strace_output = proc.communicate()
@@ -5013,7 +5024,6 @@ int func_2(int *ptr)
 {file_3_pathname}:4:5: style: The function 'func_3' is never used. [unusedFunction]
 int func_3(void)
     ^
-nofile:0:0: information: Active checkers: 114/188 (use --checkers-report=<filename> to see details) [checkersReport]
 
 """
 
@@ -5030,5 +5040,21 @@ nofile:0:0: information: Active checkers: 114/188 (use --checkers-report=<filena
     with open(output_pathname, 'r') as f:
         output_content = f.read()
 
+    output_content = output_content.split('\n')
+    expected_cppcheck_output = expected_cppcheck_output.split('\n')
+    strace_output = strace_output.decode('utf-8').split('\n')
+    expected_strace_output = expected_strace_output.split('\n')
+
+    # Order may be different with -j
+    output_content.sort()
+    expected_cppcheck_output.sort()
+    strace_output.sort()
+    expected_strace_output.sort()
+
+    # With -j, the number of active checkers is different, and strace prints info about child processes
+    filter_func = lambda line: 'Active checkers' not in line and 'strace: Process' not in line
+    output_content = list(filter(filter_func, output_content))
+    strace_output = list(filter(filter_func, strace_output))
+
     assert output_content == expected_cppcheck_output
-    assert strace_output.decode('utf-8') == expected_strace_output
+    assert strace_output == expected_strace_output
