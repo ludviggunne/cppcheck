@@ -7789,6 +7789,8 @@ static const Function* getFunction(const Token* tok) {
         return nullptr;
     if (tok->function() && tok->function()->retDef)
         return tok->function();
+    if (tok->str() == ")" && tok->link() && Token::simpleMatch(tok->link()->previous(), "_Generic ("))
+        return tok->link()->function();
     if (const Variable* lvar = tok->variable()) { // lambda
         const Function* lambda{};
         if (Token::Match(lvar->nameToken()->next(), "; %varid% = [", lvar->declarationId()))
@@ -7842,6 +7844,66 @@ static int getIntegerConstantMacroWidth(const Token* tok) {
     return intnum;
 }
 
+void SymbolDatabase::setGenericValueType(Token *par)
+{
+    const Token *tok = par->astOperand2();
+    std::vector<const Token*> stack;
+
+    while (tok && tok->str() == ",") {
+        stack.push_back(tok);
+        tok = tok->astOperand1();
+    }
+
+    if (!tok)
+        return;
+
+    const ValueType *controlVt = tok->valueType();
+
+    if (!controlVt)
+        return;
+
+    const Token *selected = nullptr;
+
+    const auto matchVt = [](const ValueType *control, const ValueType *type) {
+        // Strip top level qualifiers of controlling expression
+        const nonneg int controlMask = ~(1 << control->pointer);
+        return control->isTypeEqual(type) &&
+               control->sign == type->sign &&
+               (control->constness & controlMask) == type->constness &&
+               (control->volatileness & controlMask) == type->volatileness;
+    };
+
+    while (!stack.empty()) {
+        const Token *comma = stack.back();
+        stack.pop_back();
+
+        const Token *type = comma->next();
+        const Token *expr = comma->astOperand2();
+
+        if (type->str() == "default") {
+            if (!selected)
+                selected = expr;
+        } else {
+            ValueType typeVt;
+            parsedecl(type, &typeVt, mDefaultSignedness, mSettings);
+
+            if (matchVt(controlVt, &typeVt)) {
+                selected = expr;
+                break;
+            }
+        }
+    }
+
+    if (!selected)
+        return;
+
+    if (selected->valueType())
+        setValueType(par, *selected->valueType());
+
+    if (selected->function())
+        par->function(selected->function());
+}
+
 void SymbolDatabase::setValueTypeInTokenList(bool reportDebugWarnings, Token *tokens)
 {
     if (!tokens)
@@ -7850,7 +7912,18 @@ void SymbolDatabase::setValueTypeInTokenList(bool reportDebugWarnings, Token *to
     for (Token *tok = tokens; tok; tok = tok->next())
         tok->setValueType(nullptr);
 
+    std::vector<Token*> genericClosingParens;
+
     for (Token *tok = tokens; tok; tok = tok->next()) {
+        if (Token::simpleMatch(tok, "_Generic (")) {
+            genericClosingParens.push_back(tok->linkAt(1));
+            continue;
+        }
+        if (!genericClosingParens.empty() && tok == genericClosingParens.back()) {
+            setGenericValueType(tok->link());
+            genericClosingParens.pop_back();
+            continue;
+        }
         if (tok->isNumber()) {
             if (MathLib::isFloat(tok->str())) {
                 ValueType::Type type = ValueType::Type::DOUBLE;
