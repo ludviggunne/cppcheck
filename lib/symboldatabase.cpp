@@ -7846,6 +7846,9 @@ static int getIntegerConstantMacroWidth(const Token* tok) {
 
 void SymbolDatabase::setGenericValueType(Token *par)
 {
+    if (!par)
+        return;
+
     const Token *tok = par->astOperand2();
     std::vector<const Token*> stack;
 
@@ -7866,11 +7869,11 @@ void SymbolDatabase::setGenericValueType(Token *par)
 
     const auto matchVt = [](const ValueType *control, const ValueType *type) {
         // Strip top level qualifiers of controlling expression
-        const nonneg int controlMask = ~(1 << control->pointer);
+        const unsigned int controlMask = ~(1U << control->pointer);
         return control->isTypeEqual(type) &&
                control->sign == type->sign &&
-               (control->constness & controlMask) == type->constness &&
-               (control->volatileness & controlMask) == type->volatileness;
+               (static_cast<unsigned int>(control->constness) & controlMask) == static_cast<unsigned int>(type->constness) &&
+               (static_cast<unsigned int>(control->volatileness) & controlMask) == static_cast<unsigned int>(type->volatileness);
     };
 
     while (!stack.empty()) {
