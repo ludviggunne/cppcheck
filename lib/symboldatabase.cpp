@@ -7789,8 +7789,6 @@ static const Function* getFunction(const Token* tok) {
         return nullptr;
     if (tok->function() && tok->function()->retDef)
         return tok->function();
-    if (tok->str() == ")" && tok->link() && Token::simpleMatch(tok->link()->previous(), "_Generic ("))
-        return tok->link()->function();
     if (const Variable* lvar = tok->variable()) { // lambda
         const Function* lambda{};
         if (Token::Match(lvar->nameToken()->next(), "; %varid% = [", lvar->declarationId()))
@@ -7888,7 +7886,9 @@ void SymbolDatabase::setGenericValueType(Token *par)
                 selected = expr;
         } else {
             ValueType typeVt;
-            parsedecl(type, &typeVt, mDefaultSignedness, mSettings);
+
+            if (!parsedecl(type, &typeVt, mDefaultSignedness, mSettings))
+                continue;
 
             if (matchVt(controlVt, &typeVt)) {
                 selected = expr;
@@ -7900,11 +7900,18 @@ void SymbolDatabase::setGenericValueType(Token *par)
     if (!selected)
         return;
 
-    if (selected->valueType())
+    if (selected->valueType()) {
         setValueType(par, *selected->valueType());
+    } else {
+        const Function *f = selected->function();
+        Token *parent = par->astParent();
 
-    if (selected->function())
-        par->function(selected->function());
+        if (f && f->retDef && parent && parent->str() == "(") {
+            ValueType returnVt;
+            if (parsedecl(f->retDef, &returnVt, mDefaultSignedness, mSettings))
+                setValueType(parent, returnVt);
+        }
+    }
 }
 
 void SymbolDatabase::setValueTypeInTokenList(bool reportDebugWarnings, Token *tokens)
