@@ -21,6 +21,63 @@
 
 #include "checkers.h"
 
+CPPCHECKLIB std::string reportTypeString(ReportType reportType)
+{
+    switch (reportType)
+    {
+    case ReportType::normal: return "normal";
+    case ReportType::autosar: return "autosar";
+    case ReportType::certC: return "cert-c-2016";
+    case ReportType::certCpp: return "cert-cpp-2016";
+    case ReportType::misraC2012: return "misra-c-2012";
+    case ReportType::misraC2023: return "misra-c-2023";
+    case ReportType::misraC2025: return "misra-c-2025";
+    case ReportType::misraCpp2008: return "misra-cpp-2008";
+    case ReportType::misraCpp2023: return "misra-cpp-2023";
+    }
+}
+
+bool parseReportType(const std::string &str, ReportType &reportType)
+{
+    if (str == "normal") {
+        reportType = ReportType::normal;
+        return true;
+    }
+    if (str == "autosar") {
+        reportType = ReportType::autosar;
+        return true;
+    }
+    if (str == "cert-c-2016") {
+        reportType = ReportType::certC;
+        return true;
+    }
+    if (str == "cert-cpp-2016") {
+        reportType = ReportType::certCpp;
+        return true;
+    }
+    if (str == "misra-c-2012") {
+        reportType = ReportType::misraC2012;
+        return true;
+    }
+    if (str == "misra-c-2023") {
+        reportType = ReportType::misraC2023;
+        return true;
+    }
+    if (str == "misra-c-2025") {
+        reportType = ReportType::misraC2025;
+        return true;
+    }
+    if (str == "misra-cpp-2008") {
+        reportType = ReportType::misraCpp2008;
+        return true;
+    }
+    if (str == "misra-cpp-2023") {
+        reportType = ReportType::misraCpp2023;
+        return true;
+    }
+    return false;
+}
+
 namespace checkers {
     const std::map<std::string, std::string> allCheckers{
         {"Check64BitPortability::pointerassignment","portability"},

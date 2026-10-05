@@ -21,6 +21,8 @@
 //---------------------------------------------------------------------------
 
 #include "config.h"
+#include "errortypes.h"
+#include "checkers.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -61,6 +63,7 @@ public:
         Certainty certainty;
         std::string symbolNames;
         std::set<std::string> macroNames;
+        Severity severity;
 
         static SuppressionList::ErrorMessage fromErrorMessage(const ::ErrorMessage &msg, const std::set<std::string> &macroNames);
     private:
@@ -84,6 +87,10 @@ public:
                 return macroName < other.macroName;
             if (hash != other.hash)
                 return hash < other.hash;
+            if (classification != other.classification)
+                return classification < other.classification;
+            if (standard != other.standard)
+                return standard < other.standard;
             if (thisAndNextLine != other.thisAndNextLine)
                 return thisAndNextLine;
             return false;
@@ -101,6 +108,10 @@ public:
             if (macroName != other.macroName)
                 return false;
             if (hash != other.hash)
+                return false;
+            if (classification != other.classification)
+                return false;
+            if (standard != other.standard)
                 return false;
             if (type != other.type)
                 return false;
@@ -143,6 +154,8 @@ public:
                    lineNumber == other.lineNumber &&
                    symbolName == other.symbolName &&
                    hash == other.hash &&
+                   standard == other.standard &&
+                   classification == other.classification &&
                    thisAndNextLine == other.thisAndNextLine;
         }
 
@@ -160,6 +173,8 @@ public:
         Type type = Type::unique;
         std::string symbolName;
         std::string macroName;
+        ReportType standard{ReportType::normal};
+        std::string classification;
         std::size_t hash{};
         bool thisAndNextLine{}; // Special case for backwards compatibility: { // cppcheck-suppress something
         bool matched{}; /** This suppression was fully matched in an isSuppressed() call */

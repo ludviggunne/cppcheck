@@ -56,6 +56,7 @@ SuppressionList::ErrorMessage SuppressionList::ErrorMessage::fromErrorMessage(co
     ret.certainty = msg.certainty;
     ret.symbolNames = msg.symbolNames();
     ret.macroNames = macroNames;
+    ret.severity = msg.severity;
     return ret;
 }
 
@@ -136,14 +137,22 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 s.lineNumber = strToInt<int>(text);
             else if (std::strcmp(name, "symbolName") == 0)
                 s.symbolName = text;
-            else if (std::strcmp(name, "macroName") == 0) {
+            else if (std::strcmp(name, "classification") == 0)
+                s.classification = text;
+            else if (std::strcmp(name, "standard") == 0) {
+                if (std::strcmp(text, "normal") == 0 || !parseReportType(text, s.standard))
+                    return "invalid coding standard '" + std::string(text) + "' in suppressions XML '" + std::string(filename) + "'";
+            } else if (std::strcmp(name, "macroName") == 0) {
                 s.macroName = text;
                 s.type = SuppressionList::Type::macro;
             } else if (*text && std::strcmp(name, "hash") == 0)
                 s.hash = strToInt<std::size_t>(text);
             else
-                return std::string("unknown element '") + name + "' in suppressions XML '" + filename + "', expected id/fileName/lineNumber/symbolName/hash.";
+                return std::string("unknown element '") + name + "' in suppressions XML '" + filename + "', expected id/fileName/lineNumber/symbolName/hash/classification/standard.";
         }
+
+        if ((s.standard == ReportType::normal) != s.classification.empty())
+            return std::string(filename) + ": <standard> and <classification> must be specified together";
 
         std::string err = addSuppression(std::move(s));
         if (!err.empty())
@@ -335,7 +344,7 @@ std::string SuppressionList::addSuppression(SuppressionList::Suppression suppres
     }
 
     // Check that errorId is valid..
-    if (suppression.errorId.empty() && suppression.hash == 0)
+    if (suppression.errorId.empty() && suppression.hash == 0 && suppression.classification.empty())
         return "Failed to add suppression. No id.";
 
     for (std::string::size_type pos = 0; pos < suppression.errorId.length(); ++pos) {
@@ -482,6 +491,11 @@ SuppressionList::Suppression::Result SuppressionList::Suppression::isSuppressed(
         if (!matchedSymbol)
             return Result::Checked;
     }
+    if (!classification.empty()) {
+        const auto guideline = getGuideline(errmsg.errorId, standard, createGuidelineMapping(standard), errmsg.severity);
+        if (caseInsensitiveStringCompare(classification, getClassification(guideline, standard)) != 0)
+            return Result::Checked;
+    }
     return Result::Matched;
 }
 
@@ -578,6 +592,10 @@ void SuppressionList::dump(std::ostream & out, const std::string& filePath) cons
             out << " symbolName=\"" << ErrorLogger::toxml(suppression.symbolName) << '\"';
         if (suppression.hash > 0)
             out << " hash=\"" << suppression.hash << '\"';
+        if (!suppression.classification.empty()) {
+            out << " classification=\"" << suppression.classification << '\"';
+            out << " standard=\"" << reportTypeString(suppression.standard) << '\"';
+        }
         if (suppression.lineBegin != Suppression::NO_LINE)
             out << " lineBegin=\"" << suppression.lineBegin << '"';
         if (suppression.lineEnd != Suppression::NO_LINE)

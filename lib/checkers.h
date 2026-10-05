@@ -38,6 +38,9 @@ enum class ReportType : std::uint8_t {
     misraC2025 = 8,
 };
 
+CPPCHECKLIB std::string reportTypeString(ReportType reportType);
+CPPCHECKLIB bool parseReportType(const std::string &str, ReportType &reportType);
+
 namespace checkers {
     extern CPPCHECKLIB const std::map<std::string, std::string> allCheckers;
 
