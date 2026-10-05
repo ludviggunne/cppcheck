@@ -412,14 +412,13 @@ private:
     }
 
     #define testReportType(...) testReportType_(__FILE__, __LINE__, __VA_ARGS__)
-    void testReportType_(const char *file, int line, ReportType reportType, Severity severity, const std::string &errorId,
+    void testReportType_(const char *file, int line, CodingStandard reportType, Severity severity, const std::string &errorId,
                          const std::string &expectedClassification, const std::string &expectedGuideline) const
     {
         std::list<ErrorMessage::FileLocation> locs = { fooCpp5 };
-        const auto mapping = createGuidelineMapping(reportType);
 
         ErrorMessage msg(std::move(locs), "", severity, "", errorId, Certainty::normal);
-        msg.guideline = getGuideline(msg.id, reportType, mapping, msg.severity);
+        msg.guideline = getGuideline(msg.id, reportType, msg.severity);
         msg.classification = getClassification(msg.guideline, reportType);
 
         ASSERT_EQUALS_LOC(expectedClassification, msg.classification, file, line);
@@ -427,17 +426,17 @@ private:
     }
 
     void TestReportType() const {
-        testReportType(ReportType::misraC2012, Severity::error, "unusedVariable", "Advisory", "2.8");
-        testReportType(ReportType::misraCpp2023, Severity::warning, "premium-misra-cpp-2023-6.8.4", "Advisory", "6.8.4");
-        testReportType(ReportType::misraCpp2023, Severity::style, "premium-misra-cpp-2023-19.6.1", "Advisory", "19.6.1");
-        testReportType(ReportType::misraCpp2023, Severity::style, "premium-misra-cpp-2023-dir-0.3.1", "Advisory", "Dir 0.3.1");
-        testReportType(ReportType::misraCpp2023, Severity::style, "premium-misra-cpp-2023-dir-0.3.2", "Required", "Dir 0.3.2");
-        testReportType(ReportType::misraCpp2008, Severity::style, "premium-misra-cpp-2008-3-4-1", "Required", "3-4-1");
-        testReportType(ReportType::misraC2012, Severity::style, "premium-misra-c-2012-dir-4.6", "Advisory", "Dir 4.6");
-        testReportType(ReportType::misraC2012, Severity::style, "premium-misra-c-2012-10.4-positive-number", "Required", "10.4");
-        testReportType(ReportType::misraC2012, Severity::style, "premium-misra-c-2012-10.4", "Required", "10.4");
-        testReportType(ReportType::misraC2012, Severity::style, "misra-c2012-dir-4.6", "Advisory", "Dir 4.6");
-        testReportType(ReportType::certC, Severity::error, "resourceLeak", "L3", "FIO42-C");
+        testReportType(CodingStandard::misraC2012, Severity::error, "unusedVariable", "Advisory", "2.8");
+        testReportType(CodingStandard::misraCpp2023, Severity::warning, "premium-misra-cpp-2023-6.8.4", "Advisory", "6.8.4");
+        testReportType(CodingStandard::misraCpp2023, Severity::style, "premium-misra-cpp-2023-19.6.1", "Advisory", "19.6.1");
+        testReportType(CodingStandard::misraCpp2023, Severity::style, "premium-misra-cpp-2023-dir-0.3.1", "Advisory", "Dir 0.3.1");
+        testReportType(CodingStandard::misraCpp2023, Severity::style, "premium-misra-cpp-2023-dir-0.3.2", "Required", "Dir 0.3.2");
+        testReportType(CodingStandard::misraCpp2008, Severity::style, "premium-misra-cpp-2008-3-4-1", "Required", "3-4-1");
+        testReportType(CodingStandard::misraC2012, Severity::style, "premium-misra-c-2012-dir-4.6", "Advisory", "Dir 4.6");
+        testReportType(CodingStandard::misraC2012, Severity::style, "premium-misra-c-2012-10.4-positive-number", "Required", "10.4");
+        testReportType(CodingStandard::misraC2012, Severity::style, "premium-misra-c-2012-10.4", "Required", "10.4");
+        testReportType(CodingStandard::misraC2012, Severity::style, "misra-c2012-dir-4.6", "Advisory", "Dir 4.6");
+        testReportType(CodingStandard::certC, Severity::error, "resourceLeak", "L3", "FIO42-C");
     }
 
     void ErrorMessageCode() const {
