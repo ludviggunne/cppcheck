@@ -173,7 +173,7 @@ public:
         Type type = Type::unique;
         std::string symbolName;
         std::string macroName;
-        ReportType standard{ReportType::normal};
+        CodingStandard standard{CodingStandard::none};
         std::string classification;
         std::size_t hash{};
         bool thisAndNextLine{}; // Special case for backwards compatibility: { // cppcheck-suppress something

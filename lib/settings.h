@@ -131,7 +131,7 @@ public:
     static std::pair<std::string, std::string> getNameAndVersion(const std::string& productName);
 
     /** @brief Report type */
-    ReportType reportType = ReportType::normal;
+    CodingStandard reportType = CodingStandard::none;
 
     /** @brief addons, either filename of python/json file or json data */
     std::unordered_set<std::string> addons;

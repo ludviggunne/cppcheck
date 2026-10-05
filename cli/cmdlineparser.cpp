@@ -1286,7 +1286,9 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
 
         else if (std::strncmp(argv[i], "--report-type=", 14) == 0) {
             const std::string typeStr = argv[i] + 14;
-            if (!parseReportType(typeStr, mSettings.reportType)) {
+            if (typeStr == "normal") {
+                mSettings.reportType = CodingStandard::none;
+            } else if (!parseCodingStandard(typeStr, mSettings.reportType)) {
                 mLogger.printError("Unknown report type \'" + typeStr + "\'");
                 return Result::Fail;
             }

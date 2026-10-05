@@ -62,58 +62,54 @@ const std::set<std::string> ErrorLogger::mCriticalErrorIds{
     "unknownMacro"
 };
 
-std::string reportTypeString(ReportType reportType)
+std::string codingStandardString(CodingStandard standard)
 {
-    switch (reportType)
+    switch (standard)
     {
-    case ReportType::normal: return "normal";
-    case ReportType::autosar: return "autosar";
-    case ReportType::certC: return "cert-c-2016";
-    case ReportType::certCpp: return "cert-cpp-2016";
-    case ReportType::misraC2012: return "misra-c-2012";
-    case ReportType::misraC2023: return "misra-c-2023";
-    case ReportType::misraC2025: return "misra-c-2025";
-    case ReportType::misraCpp2008: return "misra-cpp-2008";
-    case ReportType::misraCpp2023: return "misra-cpp-2023";
+    case CodingStandard::none: return "none";
+    case CodingStandard::autosar: return "autosar";
+    case CodingStandard::certC: return "cert-c-2016";
+    case CodingStandard::certCpp: return "cert-cpp-2016";
+    case CodingStandard::misraC2012: return "misra-c-2012";
+    case CodingStandard::misraC2023: return "misra-c-2023";
+    case CodingStandard::misraC2025: return "misra-c-2025";
+    case CodingStandard::misraCpp2008: return "misra-cpp-2008";
+    case CodingStandard::misraCpp2023: return "misra-cpp-2023";
     }
 }
 
-bool parseReportType(const std::string &str, ReportType &reportType)
+bool parseCodingStandard(const std::string &str, CodingStandard &standard)
 {
-    if (str == "normal") {
-        reportType = ReportType::normal;
-        return true;
-    }
     if (str == "autosar") {
-        reportType = ReportType::autosar;
+        standard = CodingStandard::autosar;
         return true;
     }
     if (str == "cert-c-2016") {
-        reportType = ReportType::certC;
+        standard = CodingStandard::certC;
         return true;
     }
     if (str == "cert-cpp-2016") {
-        reportType = ReportType::certCpp;
+        standard = CodingStandard::certCpp;
         return true;
     }
     if (str == "misra-c-2012") {
-        reportType = ReportType::misraC2012;
+        standard = CodingStandard::misraC2012;
         return true;
     }
     if (str == "misra-c-2023") {
-        reportType = ReportType::misraC2023;
+        standard = CodingStandard::misraC2023;
         return true;
     }
     if (str == "misra-c-2025") {
-        reportType = ReportType::misraC2025;
+        standard = CodingStandard::misraC2025;
         return true;
     }
     if (str == "misra-cpp-2008") {
-        reportType = ReportType::misraCpp2008;
+        standard = CodingStandard::misraCpp2008;
         return true;
     }
     if (str == "misra-cpp-2023") {
-        reportType = ReportType::misraCpp2023;
+        standard = CodingStandard::misraCpp2023;
         return true;
     }
     return false;
@@ -1108,7 +1104,7 @@ void substituteTemplateLocationStatic(std::string& templateLocation, bool eraseC
     replaceColors(templateLocation, eraseColors);
 }
 
-std::string getClassification(const std::string &guideline, ReportType reportType) {
+std::string getClassification(const std::string &guideline, CodingStandard standard) {
     if (guideline.empty())
         return "";
 
@@ -1121,16 +1117,16 @@ std::string getClassification(const std::string &guideline, ReportType reportTyp
         return it->classification;
     };
 
-    switch (reportType) {
-    case ReportType::autosar:
+    switch (standard) {
+    case CodingStandard::autosar:
         return getClassification(checkers::autosarInfo, guideline);
-    case ReportType::certC:
+    case CodingStandard::certC:
         return getClassification(checkers::certCInfo, guideline);
-    case ReportType::certCpp:
+    case CodingStandard::certCpp:
         return getClassification(checkers::certCppInfo, guideline);
-    case ReportType::misraC2012:
-    case ReportType::misraC2023:
-    case ReportType::misraC2025:
+    case CodingStandard::misraC2012:
+    case CodingStandard::misraC2023:
+    case CodingStandard::misraC2025:
     {
         const bool isDirective = guideline.rfind("Dir ", 0) == 0;
 
@@ -1143,14 +1139,14 @@ std::string getClassification(const std::string &guideline, ReportType reportTyp
         const int b = std::stoi(components[1]);
 
         const std::vector<checkers::MisraInfo> *info = nullptr;
-        switch (reportType) {
-        case ReportType::misraC2012:
+        switch (standard) {
+        case CodingStandard::misraC2012:
             info = isDirective ? &checkers::misraC2012Directives : &checkers::misraC2012Rules;
             break;
-        case ReportType::misraC2023:
+        case CodingStandard::misraC2023:
             info = isDirective ? &checkers::misraC2023Directives : &checkers::misraC2023Rules;
             break;
-        case ReportType::misraC2025:
+        case CodingStandard::misraC2025:
             info = isDirective ? &checkers::misraC2025Directives : &checkers::misraC2025Rules;
             break;
         default:
@@ -1163,13 +1159,13 @@ std::string getClassification(const std::string &guideline, ReportType reportTyp
 
         return it == info->cend() ? "" : it->str;
     }
-    case ReportType::misraCpp2008:
-    case ReportType::misraCpp2023:
+    case CodingStandard::misraCpp2008:
+    case CodingStandard::misraCpp2023:
     {
         const std::vector<checkers::MisraCppInfo> *info;
         std::vector<std::string> components;
 
-        if (reportType == ReportType::misraCpp2008) {
+        if (standard == CodingStandard::misraCpp2008) {
             info = &checkers::misraCpp2008Rules;
             components = splitString(guideline, '-');
         } else {
@@ -1203,14 +1199,14 @@ std::string getClassification(const std::string &guideline, ReportType reportTyp
     }
 }
 
-std::string getGuideline(const std::string &errId, ReportType reportType,
+std::string getGuideline(const std::string &errId, CodingStandard standard,
                          const std::map<std::string, std::string> &guidelineMapping,
                          Severity severity)
 {
     std::string guideline;
 
-    switch (reportType) {
-    case ReportType::autosar:
+    switch (standard) {
+    case CodingStandard::autosar:
         if (errId.rfind("premium-autosar-", 0) == 0) {
             guideline = errId.substr(16);
             break;
@@ -1218,17 +1214,17 @@ std::string getGuideline(const std::string &errId, ReportType reportType,
         if (errId.rfind("premium-misra-cpp-2008-", 0) == 0)
             guideline = "M" + errId.substr(23);
         break;
-    case ReportType::certC:
-    case ReportType::certCpp:
+    case CodingStandard::certC:
+    case CodingStandard::certCpp:
         if (errId.rfind("premium-cert-", 0) == 0) {
             guideline = errId.substr(13);
             std::transform(guideline.begin(), guideline.end(),
                            guideline.begin(), static_cast<int (*)(int)>(std::toupper));
         }
         break;
-    case ReportType::misraC2012:
-    case ReportType::misraC2023:
-    case ReportType::misraC2025:
+    case CodingStandard::misraC2012:
+    case CodingStandard::misraC2023:
+    case CodingStandard::misraC2025:
         if (errId.rfind("misra-c20", 0) == 0 || errId.rfind("premium-misra-c-20", 0) == 0) {
             auto pos1 = errId.find("20") + 5;
             if (pos1 >= errId.size())
@@ -1239,11 +1235,11 @@ std::string getGuideline(const std::string &errId, ReportType reportType,
             guideline = errId.substr(pos1, endpos-pos1);
         }
         break;
-    case ReportType::misraCpp2008:
+    case CodingStandard::misraCpp2008:
         if (errId.rfind("premium-misra-cpp-2008", 0) == 0)
             guideline = errId.substr(23);
         break;
-    case ReportType::misraCpp2023:
+    case CodingStandard::misraCpp2023:
         if (errId.rfind("premium-misra-cpp-2023", 0) == 0)
             guideline = errId.substr(errId.rfind('-') + 1);
         break;
@@ -1272,33 +1268,33 @@ std::string getGuideline(const std::string &errId, ReportType reportType,
     return "";
 }
 
-std::map<std::string, std::string> createGuidelineMapping(ReportType reportType) {
+std::map<std::string, std::string> createGuidelineMapping(CodingStandard reportType) {
     std::map<std::string, std::string> guidelineMapping;
     const std::vector<checkers::IdMapping> *idMapping1 = nullptr;
     const std::vector<checkers::IdMapping> *idMapping2 = nullptr;
     std::string ext1, ext2;
 
     switch (reportType) {
-    case ReportType::autosar:
+    case CodingStandard::autosar:
         idMapping1 = &checkers::idMappingAutosar;
         break;
-    case ReportType::certCpp:
+    case CodingStandard::certCpp:
         idMapping2 = &checkers::idMappingCertCpp;
         ext2 = "-CPP";
         FALLTHROUGH;
-    case ReportType::certC:
+    case CodingStandard::certC:
         idMapping1 = &checkers::idMappingCertC;
         ext1 = "-C";
         break;
-    case ReportType::misraC2012:
-    case ReportType::misraC2023:
-    case ReportType::misraC2025:
+    case CodingStandard::misraC2012:
+    case CodingStandard::misraC2023:
+    case CodingStandard::misraC2025:
         idMapping1 = &checkers::idMappingMisraC;
         break;
-    case ReportType::misraCpp2008:
+    case CodingStandard::misraCpp2008:
         idMapping1 = &checkers::idMappingMisraCpp2008;
         break;
-    case ReportType::misraCpp2023:
+    case CodingStandard::misraCpp2023:
         idMapping1 = &checkers::idMappingMisraCpp2023;
         break;
     default:

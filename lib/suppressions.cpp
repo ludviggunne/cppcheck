@@ -140,7 +140,7 @@ std::string SuppressionList::parseXmlFile(const char *filename)
             else if (std::strcmp(name, "classification") == 0)
                 s.classification = text;
             else if (std::strcmp(name, "standard") == 0) {
-                if (std::strcmp(text, "normal") == 0 || !parseReportType(text, s.standard))
+                if (!parseCodingStandard(text, s.standard))
                     return "invalid coding standard '" + std::string(text) + "' in suppressions XML '" + std::string(filename) + "'";
             } else if (std::strcmp(name, "macroName") == 0) {
                 s.macroName = text;
@@ -151,7 +151,7 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 return std::string("unknown element '") + name + "' in suppressions XML '" + filename + "', expected id/fileName/lineNumber/symbolName/hash/classification/standard.";
         }
 
-        if ((s.standard == ReportType::normal) != s.classification.empty())
+        if ((s.standard == CodingStandard::none) != s.classification.empty())
             return std::string(filename) + ": <standard> and <classification> must be specified together";
 
         std::string err = addSuppression(std::move(s));
@@ -594,7 +594,7 @@ void SuppressionList::dump(std::ostream & out, const std::string& filePath) cons
             out << " hash=\"" << suppression.hash << '\"';
         if (!suppression.classification.empty()) {
             out << " classification=\"" << suppression.classification << '\"';
-            out << " standard=\"" << reportTypeString(suppression.standard) << '\"';
+            out << " standard=\"" << codingStandardString(suppression.standard) << '\"';
         }
         if (suppression.lineBegin != Suppression::NO_LINE)
             out << " lineBegin=\"" << suppression.lineBegin << '"';

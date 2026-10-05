@@ -42,8 +42,8 @@ namespace tinyxml2 {
     class XMLElement;
 }
 
-enum class ReportType : std::uint8_t {
-    normal = 0,
+enum class CodingStandard : std::uint8_t {
+    none = 0,
     autosar = 1,
     certC = 2,
     certCpp = 3,
@@ -54,8 +54,8 @@ enum class ReportType : std::uint8_t {
     misraC2025 = 8,
 };
 
-CPPCHECKLIB std::string reportTypeString(ReportType reportType);
-CPPCHECKLIB bool parseReportType(const std::string &str, ReportType &reportType);
+CPPCHECKLIB std::string codingStandardString(CodingStandard standard);
+CPPCHECKLIB bool parseCodingStandard(const std::string &str, CodingStandard &standard);
 
 /// @addtogroup Core
 /// @{
@@ -366,16 +366,16 @@ CPPCHECKLIB void substituteTemplateFormatStatic(std::string& templateFormat, boo
 /** replaces the static parts of the location template **/
 CPPCHECKLIB void substituteTemplateLocationStatic(std::string& templateLocation, bool eraseColors = false);
 
-/** Get a classification string from the given guideline and reporttype */
-CPPCHECKLIB std::string getClassification(const std::string &guideline, ReportType reportType);
+/** Get a classification string from the given guideline and coding standard */
+CPPCHECKLIB std::string getClassification(const std::string &guideline, CodingStandard standard);
 
-/** Get a guideline string froM the given error id, reporttype, mapping and severity */
-CPPCHECKLIB std::string getGuideline(const std::string &errId, ReportType reportType,
+/** Get a guideline string froM the given error id, coding standard, mapping and severity */
+CPPCHECKLIB std::string getGuideline(const std::string &errId, CodingStandard standard,
                                      const std::map<std::string, std::string> &guidelineMapping,
                                      Severity severity);
 
-/** Get a map from cppcheck error ids to guidelines matching the given report type */
-CPPCHECKLIB std::map<std::string, std::string> createGuidelineMapping(ReportType reportType);
+/** Get a map from cppcheck error ids to guidelines matching the given coding standard */
+CPPCHECKLIB std::map<std::string, std::string> createGuidelineMapping(CodingStandard standard);
 
 /// @}
 //---------------------------------------------------------------------------
