@@ -369,7 +369,7 @@ CPPCHECKLIB void substituteTemplateLocationStatic(std::string& templateLocation,
 /** Get a classification string from the given guideline and coding standard */
 CPPCHECKLIB std::string getClassification(const std::string &guideline, CodingStandard standard);
 
-/** Get a guideline string froM the given error id, coding standard, mapping and severity */
+/** Get a guideline string from the given error id, coding standard and severity */
 CPPCHECKLIB std::string getGuideline(const std::string &errId, CodingStandard standard, Severity severity);
 
 /// @}

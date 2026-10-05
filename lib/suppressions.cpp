@@ -139,6 +139,8 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 s.symbolName = text;
             else if (std::strcmp(name, "classification") == 0) {
                 s.classification = text;
+                if (s.classification.empty())
+                    return "empty classification in suppressions XML '" + std::string(filename) + "'";
                 const char *standardText = e2->Attribute("standard");
                 if (standardText == nullptr)
                     return "missing 'standard' attribute for classification '" + s.classification + "' in suppressions XML '" + std::string(filename) + "'";
