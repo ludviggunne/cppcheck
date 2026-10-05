@@ -137,10 +137,12 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 s.lineNumber = strToInt<int>(text);
             else if (std::strcmp(name, "symbolName") == 0)
                 s.symbolName = text;
-            else if (std::strcmp(name, "classification") == 0)
+            else if (std::strcmp(name, "classification") == 0) {
                 s.classification = text;
-            else if (std::strcmp(name, "standard") == 0) {
-                if (!parseCodingStandard(text, s.standard))
+                const char *standardText = e2->Attribute("standard");
+                if (standardText == nullptr)
+                    return "missing 'standard' attribute for classification '" + s.classification + "' in suppressions XML '" + std::string(filename) + "'";
+                if (!parseCodingStandard(standardText, s.standard))
                     return "invalid coding standard '" + std::string(text) + "' in suppressions XML '" + std::string(filename) + "'";
             } else if (std::strcmp(name, "macroName") == 0) {
                 s.macroName = text;
