@@ -370,12 +370,7 @@ CPPCHECKLIB void substituteTemplateLocationStatic(std::string& templateLocation,
 CPPCHECKLIB std::string getClassification(const std::string &guideline, CodingStandard standard);
 
 /** Get a guideline string froM the given error id, coding standard, mapping and severity */
-CPPCHECKLIB std::string getGuideline(const std::string &errId, CodingStandard standard,
-                                     const std::map<std::string, std::string> &guidelineMapping,
-                                     Severity severity);
-
-/** Get a map from cppcheck error ids to guidelines matching the given coding standard */
-CPPCHECKLIB std::map<std::string, std::string> createGuidelineMapping(CodingStandard standard);
+CPPCHECKLIB std::string getGuideline(const std::string &errId, CodingStandard standard, Severity severity);
 
 /// @}
 //---------------------------------------------------------------------------

@@ -494,7 +494,7 @@ SuppressionList::Suppression::Result SuppressionList::Suppression::isSuppressed(
             return Result::Checked;
     }
     if (!classification.empty()) {
-        const auto guideline = getGuideline(errmsg.errorId, standard, createGuidelineMapping(standard), errmsg.severity);
+        const auto guideline = getGuideline(errmsg.errorId, standard, errmsg.severity);
         if (caseInsensitiveStringCompare(classification, getClassification(guideline, standard)) != 0)
             return Result::Checked;
     }

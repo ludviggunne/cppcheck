@@ -106,7 +106,6 @@ namespace {
     public:
         explicit StdLogger(const Settings& settings)
             : mSettings(settings)
-            , mGuidelineMapping(createGuidelineMapping(settings.reportType))
         {
             if (!mSettings.outputFile.empty()) {
                 mErrorOutput = new std::ofstream(settings.outputFile);
@@ -237,11 +236,6 @@ namespace {
          * SARIF report generator
          */
         SarifReport mSarifReport;
-
-        /**
-         * Coding standard guideline mapping
-         */
-        std::map<std::string, std::string> mGuidelineMapping;
 
         /**
          * File metrics
@@ -656,8 +650,7 @@ void StdLogger::reportErr(const ErrorMessage &msg)
         return;
 
     ErrorMessage msgCopy = msg;
-    msgCopy.guideline = getGuideline(msgCopy.id, mSettings.reportType,
-                                     mGuidelineMapping, msgCopy.severity);
+    msgCopy.guideline = getGuideline(msgCopy.id, mSettings.reportType, msgCopy.severity);
     msgCopy.classification = getClassification(msgCopy.guideline, mSettings.reportType);
 
     // TODO: there should be no need for verbose and default messages here

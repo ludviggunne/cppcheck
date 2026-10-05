@@ -39,6 +39,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 
@@ -76,6 +77,7 @@ std::string codingStandardString(CodingStandard standard)
     case CodingStandard::misraCpp2008: return "misra-cpp-2008";
     case CodingStandard::misraCpp2023: return "misra-cpp-2023";
     }
+    return "";
 }
 
 bool parseCodingStandard(const std::string &str, CodingStandard &standard)
@@ -1199,9 +1201,64 @@ std::string getClassification(const std::string &guideline, CodingStandard stand
     }
 }
 
-std::string getGuideline(const std::string &errId, CodingStandard standard,
-                         const std::map<std::string, std::string> &guidelineMapping,
-                         Severity severity)
+static std::map<std::string, std::string> createGuidelineMapping(CodingStandard standard) {
+    std::map<std::string, std::string> mapping;
+    const std::vector<checkers::IdMapping> *idMapping1 = nullptr;
+    const std::vector<checkers::IdMapping> *idMapping2 = nullptr;
+    std::string ext1, ext2;
+
+    switch (standard) {
+    case CodingStandard::autosar:
+        idMapping1 = &checkers::idMappingAutosar;
+        break;
+    case CodingStandard::certCpp:
+        idMapping2 = &checkers::idMappingCertCpp;
+        ext2 = "-CPP";
+        FALLTHROUGH;
+    case CodingStandard::certC:
+        idMapping1 = &checkers::idMappingCertC;
+        ext1 = "-C";
+        break;
+    case CodingStandard::misraC2012:
+    case CodingStandard::misraC2023:
+    case CodingStandard::misraC2025:
+        idMapping1 = &checkers::idMappingMisraC;
+        break;
+    case CodingStandard::misraCpp2008:
+        idMapping1 = &checkers::idMappingMisraCpp2008;
+        break;
+    case CodingStandard::misraCpp2023:
+        idMapping1 = &checkers::idMappingMisraCpp2023;
+        break;
+    default:
+        break;
+    }
+
+    if (idMapping1) {
+        for (const auto &i : *idMapping1)
+            for (const std::string &cppcheckId : splitString(i.cppcheckId, ','))
+                mapping[cppcheckId] = i.guideline + ext1;
+    }
+
+    if (idMapping2) {
+        for (const auto &i : *idMapping2)
+            for (const std::string &cppcheckId : splitString(i.cppcheckId, ','))
+                mapping[cppcheckId] = i.guideline + ext2;
+    }
+
+    return mapping;
+}
+
+static const std::map<std::string, std::string> &getGuidelineMapping(CodingStandard standard)
+{
+    static std::mutex mutex;
+    static std::map<CodingStandard, std::map<std::string, std::string>> mappings;
+    std::lock_guard<std::mutex> lock(mutex);
+    const auto it = mappings.find(standard);
+    return it == mappings.cend() ? (mappings[standard] = createGuidelineMapping(standard)) : it->second;
+}
+
+std::string getGuideline(const std::string &errId, CodingStandard standard, Severity severity)
 {
     std::string guideline;
 
@@ -1253,6 +1310,7 @@ std::string getGuideline(const std::string &errId, CodingStandard standard,
         return guideline;
     }
 
+    const auto &guidelineMapping = getGuidelineMapping(standard);
     auto it = guidelineMapping.find(errId);
 
     if (it != guidelineMapping.cend())
@@ -1268,50 +1326,3 @@ std::string getGuideline(const std::string &errId, CodingStandard standard,
     return "";
 }
 
-std::map<std::string, std::string> createGuidelineMapping(CodingStandard reportType) {
-    std::map<std::string, std::string> guidelineMapping;
-    const std::vector<checkers::IdMapping> *idMapping1 = nullptr;
-    const std::vector<checkers::IdMapping> *idMapping2 = nullptr;
-    std::string ext1, ext2;
-
-    switch (reportType) {
-    case CodingStandard::autosar:
-        idMapping1 = &checkers::idMappingAutosar;
-        break;
-    case CodingStandard::certCpp:
-        idMapping2 = &checkers::idMappingCertCpp;
-        ext2 = "-CPP";
-        FALLTHROUGH;
-    case CodingStandard::certC:
-        idMapping1 = &checkers::idMappingCertC;
-        ext1 = "-C";
-        break;
-    case CodingStandard::misraC2012:
-    case CodingStandard::misraC2023:
-    case CodingStandard::misraC2025:
-        idMapping1 = &checkers::idMappingMisraC;
-        break;
-    case CodingStandard::misraCpp2008:
-        idMapping1 = &checkers::idMappingMisraCpp2008;
-        break;
-    case CodingStandard::misraCpp2023:
-        idMapping1 = &checkers::idMappingMisraCpp2023;
-        break;
-    default:
-        break;
-    }
-
-    if (idMapping1) {
-        for (const auto &i : *idMapping1)
-            for (const std::string &cppcheckId : splitString(i.cppcheckId, ','))
-                guidelineMapping[cppcheckId] = i.guideline + ext1;
-    }
-
-    if (idMapping2) {
-        for (const auto &i : *idMapping2)
-            for (const std::string &cppcheckId : splitString(i.cppcheckId, ','))
-                guidelineMapping[cppcheckId] = i.guideline + ext2;
-    }
-
-    return guidelineMapping;
-}
