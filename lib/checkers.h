@@ -26,21 +26,6 @@
 
 #include "config.h"
 
-enum class ReportType : std::uint8_t {
-    normal = 0,
-    autosar = 1,
-    certC = 2,
-    certCpp = 3,
-    misraC2012 = 4,
-    misraCpp2008 = 5,
-    misraCpp2023 = 6,
-    misraC2023 = 7,
-    misraC2025 = 8,
-};
-
-CPPCHECKLIB std::string reportTypeString(ReportType reportType);
-CPPCHECKLIB bool parseReportType(const std::string &str, ReportType &reportType);
-
 namespace checkers {
     extern CPPCHECKLIB const std::map<std::string, std::string> allCheckers;
 

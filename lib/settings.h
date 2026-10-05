@@ -25,7 +25,7 @@
 #include "library.h"
 #include "platform.h"
 #include "standards.h"
-#include "checkers.h"
+#include "errorlogger.h"
 
 #include <algorithm>
 #include <atomic>

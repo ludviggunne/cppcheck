@@ -22,7 +22,7 @@
 
 #include "config.h"
 #include "errortypes.h"
-#include "checkers.h"
+#include "errorlogger.h"
 
 #include <cstddef>
 #include <cstdint>

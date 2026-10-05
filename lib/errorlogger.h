@@ -36,12 +36,26 @@
 
 class Token;
 class TokenList;
-enum class ReportType : std::uint8_t;
 enum class Color : std::uint8_t;
 
 namespace tinyxml2 {
     class XMLElement;
 }
+
+enum class ReportType : std::uint8_t {
+    normal = 0,
+    autosar = 1,
+    certC = 2,
+    certCpp = 3,
+    misraC2012 = 4,
+    misraCpp2008 = 5,
+    misraCpp2023 = 6,
+    misraC2023 = 7,
+    misraC2025 = 8,
+};
+
+CPPCHECKLIB std::string reportTypeString(ReportType reportType);
+CPPCHECKLIB bool parseReportType(const std::string &str, ReportType &reportType);
 
 /// @addtogroup Core
 /// @{
