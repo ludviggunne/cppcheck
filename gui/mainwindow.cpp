@@ -399,16 +399,16 @@ void MainWindow::loadSettings()
                mSettings->value(SETTINGS_WINDOW_HEIGHT, 600).toInt());
     }
 
-    const ReportType reportType = static_cast<ReportType>(mSettings->value(SETTINGS_REPORT_TYPE, static_cast<int>(ReportType::normal)).toInt());
-    mUI->mActionReportNormal->setChecked(reportType <= ReportType::normal);
-    mUI->mActionReportAutosar->setChecked(reportType == ReportType::autosar);
-    mUI->mActionReportCertC->setChecked(reportType == ReportType::certC);
-    mUI->mActionReportCertCpp->setChecked(reportType == ReportType::certCpp);
-    mUI->mActionReportMisraC->setChecked(reportType == ReportType::misraC2012 ||
-                                         reportType == ReportType::misraC2023 ||
-                                         reportType == ReportType::misraC2025);
-    mUI->mActionReportMisraCpp2008->setChecked(reportType == ReportType::misraCpp2008);
-    mUI->mActionReportMisraCpp2023->setChecked(reportType == ReportType::misraCpp2023);
+    const CodingStandard reportType = static_cast<CodingStandard>(mSettings->value(SETTINGS_REPORT_TYPE, static_cast<int>(CodingStandard::none)).toInt());
+    mUI->mActionReportNormal->setChecked(reportType <= CodingStandard::none);
+    mUI->mActionReportAutosar->setChecked(reportType == CodingStandard::autosar);
+    mUI->mActionReportCertC->setChecked(reportType == CodingStandard::certC);
+    mUI->mActionReportCertCpp->setChecked(reportType == CodingStandard::certCpp);
+    mUI->mActionReportMisraC->setChecked(reportType == CodingStandard::misraC2012 ||
+                                         reportType == CodingStandard::misraC2023 ||
+                                         reportType == CodingStandard::misraC2025);
+    mUI->mActionReportMisraCpp2008->setChecked(reportType == CodingStandard::misraCpp2008);
+    mUI->mActionReportMisraCpp2023->setChecked(reportType == CodingStandard::misraCpp2023);
 
     const ShowTypes &types = mUI->mResults->getShowTypes();
     mUI->mActionShowStyle->setChecked(types.isShown(ShowTypes::ShowStyle));
@@ -486,13 +486,13 @@ void MainWindow::loadSettings()
     }
 }
 
-static ReportType getMisraCReportType(const QStringList &standards)
+static CodingStandard getMisraCReportType(const QStringList &standards)
 {
     if (standards.contains(CODING_STANDARD_MISRA_C_2023))
-        return ReportType::misraC2023;
+        return CodingStandard::misraC2023;
     if (standards.contains(CODING_STANDARD_MISRA_C_2025))
-        return ReportType::misraC2025;
-    return ReportType::misraC2012;
+        return CodingStandard::misraC2025;
+    return CodingStandard::misraC2012;
 }
 
 void MainWindow::saveSettings() const
@@ -502,13 +502,13 @@ void MainWindow::saveSettings() const
     mSettings->setValue(SETTINGS_WINDOW_HEIGHT, size().height());
     mSettings->setValue(SETTINGS_WINDOW_MAXIMIZED, isMaximized());
 
-    const ReportType reportType = mUI->mActionReportAutosar->isChecked() ? ReportType::autosar :
-                                  mUI->mActionReportCertC->isChecked() ? ReportType::certC :
-                                  mUI->mActionReportCertCpp->isChecked() ? ReportType::certCpp :
-                                  mUI->mActionReportMisraC->isChecked() ? (mProjectFile ? getMisraCReportType(mProjectFile->getCodingStandards()) : ReportType::misraC2012) :
-                                  mUI->mActionReportMisraCpp2008->isChecked() ? ReportType::misraCpp2008 :
-                                  mUI->mActionReportMisraCpp2023->isChecked() ? ReportType::misraCpp2023 :
-                                  ReportType::normal;
+    const CodingStandard reportType = mUI->mActionReportAutosar->isChecked() ? CodingStandard::autosar :
+                                      mUI->mActionReportCertC->isChecked() ? CodingStandard::certC :
+                                      mUI->mActionReportCertCpp->isChecked() ? CodingStandard::certCpp :
+                                      mUI->mActionReportMisraC->isChecked() ? (mProjectFile ? getMisraCReportType(mProjectFile->getCodingStandards()) : CodingStandard::misraC2012) :
+                                      mUI->mActionReportMisraCpp2008->isChecked() ? CodingStandard::misraCpp2008 :
+                                      mUI->mActionReportMisraCpp2023->isChecked() ? CodingStandard::misraCpp2023 :
+                                      CodingStandard::none;
     mSettings->setValue(SETTINGS_REPORT_TYPE, static_cast<int>(reportType));
 
     // Show * states
@@ -2304,13 +2304,13 @@ bool MainWindow::isCppcheckPremium() const {
 }
 
 void MainWindow::changeReportType() {
-    const ReportType reportType = mUI->mActionReportAutosar->isChecked() ? ReportType::autosar :
-                                  mUI->mActionReportCertC->isChecked() ? ReportType::certC :
-                                  mUI->mActionReportCertCpp->isChecked() ? ReportType::certCpp :
-                                  mUI->mActionReportMisraC->isChecked() ? (mProjectFile ? getMisraCReportType(mProjectFile->getCodingStandards()) : ReportType::misraC2012) :
-                                  mUI->mActionReportMisraCpp2008->isChecked() ? ReportType::misraCpp2008 :
-                                  mUI->mActionReportMisraCpp2023->isChecked() ? ReportType::misraCpp2023 :
-                                  ReportType::normal;
+    const CodingStandard reportType = mUI->mActionReportAutosar->isChecked() ? CodingStandard::autosar :
+                                      mUI->mActionReportCertC->isChecked() ? CodingStandard::certC :
+                                      mUI->mActionReportCertCpp->isChecked() ? CodingStandard::certCpp :
+                                      mUI->mActionReportMisraC->isChecked() ? (mProjectFile ? getMisraCReportType(mProjectFile->getCodingStandards()) : CodingStandard::misraC2012) :
+                                      mUI->mActionReportMisraCpp2008->isChecked() ? CodingStandard::misraCpp2008 :
+                                      mUI->mActionReportMisraCpp2023->isChecked() ? CodingStandard::misraCpp2023 :
+                                      CodingStandard::none;
 
     mUI->mResults->setReportType(reportType);
 

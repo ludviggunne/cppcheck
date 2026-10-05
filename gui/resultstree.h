@@ -202,7 +202,7 @@ public:
      */
     ShowTypes mShowSeverities;
 
-    void setReportType(ReportType reportType);
+    void setReportType(CodingStandard reportType);
 
     /**
      * @brief should errorItem be hidden by filter/severity/etc?
@@ -575,9 +575,7 @@ private:
     bool mShowCppcheck = true;
     bool mShowClang = true;
 
-    ReportType mReportType = ReportType::normal;
-
-    std::map<std::string, std::string> mGuideline;
+    CodingStandard mReportType = CodingStandard::none;
 };
 /// @}
 #endif // RESULTSTREE_H

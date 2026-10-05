@@ -40,7 +40,7 @@ class QSettings;
 class CheckStatistics;
 class QPoint;
 class ResultItem;
-enum class ReportType : std::uint8_t;
+enum class CodingStandard : std::uint8_t;
 namespace Ui {
     class ResultsView;
 }
@@ -219,7 +219,7 @@ public:
      */
     const ShowTypes & getShowTypes() const;
 
-    void setReportType(ReportType reportType);
+    void setReportType(CodingStandard reportType);
 
     /**
      * @brief Set the results source type for the results tree.

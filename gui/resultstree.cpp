@@ -79,15 +79,12 @@ static constexpr int COLUMN_SINCE_DATE            = 10;
 static constexpr int COLUMN_TAGS                  = 11;
 static constexpr int COLUMN_CWE                   = 12;
 
-static QString getGuideline(ReportType reportType, const std::map<std::string, std::string> &guidelineMapping,
-                            const QString& errorId, Severity severity) {
-    return QString::fromStdString(getGuideline(errorId.toStdString(),
-                                               reportType, guidelineMapping,
-                                               severity));
+static QString getGuideline(CodingStandard standard, const QString& errorId, Severity severity) {
+    return QString::fromStdString(getGuideline(errorId.toStdString(), standard, severity));
 }
 
-static QString getClassification(ReportType reportType, const QString& guideline) {
-    return QString::fromStdString(getClassification(guideline.toStdString(), reportType));
+static QString getClassification(CodingStandard standard, const QString& guideline) {
+    return QString::fromStdString(getClassification(guideline.toStdString(), standard));
 }
 
 static Severity getSeverityFromClassification(const QString &c) {
@@ -125,8 +122,8 @@ static QStringList getLabels() {
         "CWE"};
 }
 
-static Severity getSeverity(ReportType reportType, const ErrorItem& errorItem) {
-    return reportType == ReportType::normal ? errorItem.severity : getSeverityFromClassification(errorItem.classification);
+static Severity getSeverity(CodingStandard reportType, const ErrorItem& errorItem) {
+    return reportType == CodingStandard::none ? errorItem.severity : getSeverityFromClassification(errorItem.classification);
 }
 
 ResultsTree::ResultsTree(QWidget * parent) :
@@ -150,10 +147,8 @@ void ResultsTree::keyPressEvent(QKeyEvent *event)
     QTreeView::keyPressEvent(event);
 }
 
-void ResultsTree::setReportType(ReportType reportType) {
+void ResultsTree::setReportType(CodingStandard reportType) {
     mReportType = reportType;
-
-    mGuideline = createGuidelineMapping(reportType);
 
     for (int i = 0; i < mModel->rowCount(); ++i) {
         auto *fileItem = dynamic_cast<ResultItem*>(mModel->item(i, COLUMN_FILE));
@@ -161,7 +156,7 @@ void ResultsTree::setReportType(ReportType reportType) {
             continue;
         for (int j = 0; j < fileItem->rowCount(); ++j) {
             QSharedPointer<ErrorItem>& errorItem = dynamic_cast<ResultItem*>(fileItem->child(j,0))->errorItem;
-            errorItem->guideline = getGuideline(mReportType, mGuideline, errorItem->errorId, errorItem->severity);
+            errorItem->guideline = getGuideline(mReportType, errorItem->errorId, errorItem->severity);
             errorItem->classification = getClassification(mReportType, errorItem->guideline);
             dynamic_cast<ResultItem*>(fileItem->child(j, COLUMN_FILE))->setIconFileName(severityToIcon(getSeverity(reportType, *errorItem)));
             fileItem->child(j, COLUMN_CERT_LEVEL)->setText(errorItem->classification);
@@ -187,7 +182,7 @@ void ResultsTree::setReportType(ReportType reportType) {
         hideColumn(COLUMN_CERT_RULE);
     }
 
-    if (mReportType == ReportType::normal) {
+    if (mReportType == CodingStandard::none) {
         showColumn(COLUMN_SEVERITY);
     } else {
         hideColumn(COLUMN_SEVERITY);
@@ -250,8 +245,8 @@ bool ResultsTree::addErrorItem(const ErrorItem& errorItem)
 
     QSharedPointer<ErrorItem> errorItemPtr{new ErrorItem(errorItem)};
 
-    if (mReportType != ReportType::normal) {
-        errorItemPtr->guideline = getGuideline(mReportType, mGuideline, errorItemPtr->errorId, errorItemPtr->severity);
+    if (mReportType != CodingStandard::none) {
+        errorItemPtr->guideline = getGuideline(mReportType, errorItemPtr->errorId, errorItemPtr->severity);
         errorItemPtr->classification = getClassification(mReportType, errorItemPtr->guideline);
     }
 
@@ -561,7 +556,7 @@ bool ResultsTree::isErrorItemHidden(const QSharedPointer<ErrorItem>& errorItem) 
         return true;
 
     bool hide;
-    if (mReportType == ReportType::normal)
+    if (mReportType == CodingStandard::none)
         hide = !mShowSeverities.isShown(errorItem->severity);
     else
         hide = errorItem->classification.isEmpty() || !mShowSeverities.isShown(getSeverityFromClassification(errorItem->classification));
@@ -1303,14 +1298,14 @@ void ResultsTree::currentChanged(const QModelIndex &current, const QModelIndex &
 }
 
 bool ResultsTree::isCertReport() const {
-    return mReportType == ReportType::certC || mReportType == ReportType::certCpp;
+    return mReportType == CodingStandard::certC || mReportType == CodingStandard::certCpp;
 }
 
 bool ResultsTree::isAutosarMisraReport() const {
-    return mReportType == ReportType::autosar ||
-           mReportType == ReportType::misraC2012 ||
-           mReportType == ReportType::misraC2023 ||
-           mReportType == ReportType::misraC2025 ||
-           mReportType == ReportType::misraCpp2008 ||
-           mReportType == ReportType::misraCpp2023;
+    return mReportType == CodingStandard::autosar ||
+           mReportType == CodingStandard::misraC2012 ||
+           mReportType == CodingStandard::misraC2023 ||
+           mReportType == CodingStandard::misraC2025 ||
+           mReportType == CodingStandard::misraCpp2008 ||
+           mReportType == CodingStandard::misraCpp2023;
 }

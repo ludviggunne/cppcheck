@@ -71,7 +71,7 @@
 #include <QTextStream>
 #include <Qt>
 
-enum class ReportType : std::uint8_t;
+enum class CodingStandard : std::uint8_t;
 
 ResultsView::ResultsView(QWidget * parent) :
     QWidget(parent),
@@ -152,7 +152,7 @@ const ShowTypes & ResultsView::getShowTypes() const
     return mUI->mTree->mShowSeverities;
 }
 
-void ResultsView::setReportType(ReportType reportType) {
+void ResultsView::setReportType(CodingStandard reportType) {
     mUI->mTree->setReportType(reportType);
 }
 

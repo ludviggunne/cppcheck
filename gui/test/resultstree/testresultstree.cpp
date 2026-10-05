@@ -289,7 +289,7 @@ void TestResultsTree::testReportType() const
     QCOMPARE(report.output, "id1,,\nunusedVariable,,");
 
     // switch to Misra C report and check that "id1" is not shown
-    tree.setReportType(ReportType::misraC2012);
+    tree.setReportType(CodingStandard::misraC2012);
     tree.saveResults(&report);
     QCOMPARE(report.output, "unusedVariable,Advisory,2.8");
 
@@ -303,7 +303,7 @@ void TestResultsTree::testReportType() const
 
 void TestResultsTree::testReportTypeIcon() const {
     ResultsTree tree(nullptr);
-    tree.setReportType(ReportType::misraC2012);
+    tree.setReportType(CodingStandard::misraC2012);
     tree.addErrorItem(createErrorItem("file1.c", 10, Severity::style, "some rule text", "premium-misra-c-2012-1.1")); // Required
     tree.addErrorItem(createErrorItem("file1.c", 20, Severity::style, "some rule text", "premium-misra-c-2012-1.2")); // Advisory
     tree.addErrorItem(createErrorItem("file1.c", 30, Severity::style, "some rule text", "premium-misra-c-2012-9.1")); // Mandatory
@@ -320,12 +320,12 @@ void TestResultsTree::testReportTypeIcon() const {
     QCOMPARE(err2->getIconFileName(), ":images/applications-development.png");
     QCOMPARE(err3->getIconFileName(), ":images/dialog-error.png");
 
-    tree.setReportType(ReportType::normal);
+    tree.setReportType(CodingStandard::none);
     QCOMPARE(err1->getIconFileName(), ":images/applications-development.png");
     QCOMPARE(err2->getIconFileName(), ":images/applications-development.png");
     QCOMPARE(err3->getIconFileName(), ":images/applications-development.png");
 
-    tree.setReportType(ReportType::misraC2012);
+    tree.setReportType(CodingStandard::misraC2012);
     QCOMPARE(err1->getIconFileName(), ":images/dialog-warning.png");
     QCOMPARE(err2->getIconFileName(), ":images/applications-development.png");
     QCOMPARE(err3->getIconFileName(), ":images/dialog-error.png");
@@ -348,7 +348,7 @@ void TestResultsTree::testGetGuidelineError() const
 
     // normal report with 2 errors
     ResultsTree tree(nullptr);
-    tree.setReportType(ReportType::misraC2012);
+    tree.setReportType(CodingStandard::misraC2012);
     tree.addErrorItem(createErrorItem(Severity::error, "id1")); // error severity => guideline 1.3
     tree.saveResults(&report);
     QCOMPARE(report.output, "id1,Required,1.3");
@@ -360,7 +360,7 @@ void TestResultsTree::misraCReportShowClassifications() const
     tree.showResults(ShowTypes::ShowType::ShowErrors, true);
     tree.showResults(ShowTypes::ShowType::ShowWarnings, true);
     tree.showResults(ShowTypes::ShowType::ShowStyle, true);
-    tree.setReportType(ReportType::misraC2012);
+    tree.setReportType(CodingStandard::misraC2012);
     tree.addErrorItem(createErrorItem("file1.c", 10, Severity::style, "some rule text", "premium-misra-c-2012-1.1")); // Required
     tree.addErrorItem(createErrorItem("file1.c", 20, Severity::style, "some rule text", "premium-misra-c-2012-1.2")); // Advisory
     tree.addErrorItem(createErrorItem("file1.c", 30, Severity::style, "some rule text", "premium-misra-c-2012-9.1")); // Mandatory
