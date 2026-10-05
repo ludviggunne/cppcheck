@@ -141,6 +141,8 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 s.classification = text;
                 if (s.classification.empty())
                     return "empty classification in suppressions XML '" + std::string(filename) + "'";
+                strTolower(s.classification);
+                s.classification[0] = std::toupper(s.classification[0]);
                 const char *standardText = e2->Attribute("standard");
                 if (standardText == nullptr)
                     return "missing 'standard' attribute for classification '" + s.classification + "' in suppressions XML '" + std::string(filename) + "'";
@@ -338,6 +340,8 @@ std::string SuppressionList::addClassificationSuppression(CodingStandard standar
     Suppression suppression;
     suppression.standard = standard;
     suppression.classification = classification;
+    strTolower(suppression.classification);
+    suppression.classification[0] = std::toupper(suppression.classification[0]);
     try {
         return addSuppression(std::move(suppression));
     } catch (const std::exception& e) {
