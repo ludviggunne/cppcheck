@@ -333,6 +333,18 @@ std::string SuppressionList::addSuppressionLine(const std::string &line)
     }
 }
 
+std::string SuppressionList::addClassificationSuppression(CodingStandard standard, const std::string &classification)
+{
+    Suppression suppression;
+    suppression.standard = standard;
+    suppression.classification = classification;
+    try {
+        return addSuppression(std::move(suppression));
+    } catch (const std::exception& e) {
+        return e.what();
+    }
+}
+
 std::string SuppressionList::addSuppression(SuppressionList::Suppression suppression)
 {
     std::lock_guard<std::mutex> lg(mSuppressionsSync);

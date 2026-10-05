@@ -229,6 +229,14 @@ public:
     std::string addSuppressionLine(const std::string &line);
 
     /**
+     * @brief Add a suppression for a coding standard classification.
+     * @param standard The coding standard.
+     * @param classification The classification.
+     * @return error message. empty upon success
+     */
+    std::string addClassificationSuppression(CodingStandard standard, const std::string &classification);
+
+    /**
      * @brief Don't show this error. File and/or line are optional. In which case
      * the errorId alone is used for filtering.
      * @param suppression suppression details

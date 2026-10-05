@@ -1472,6 +1472,29 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
             }
         }
 
+        else if (std::strncmp(argv[i], "--suppress-classification=", 26) == 0) {
+            const std::string full = argv[i]+26;
+            const std::vector<std::string> components = splitString(full, ':');
+            if (components.size() != 2 || components[0].empty() || components[1].empty()) {
+                mLogger.printError("invalid argument for --suppress-classification: " + full);
+                mLogger.printError("accepted format is [coding standard]:[classification].");
+                return Result::Fail;
+            }
+            CodingStandard standard;
+            if (!parseCodingStandard(components[0], standard)) {
+                mLogger.printError("invalid coding standard '" + components[0] + "'");
+                return Result::Fail;
+            }
+            const std::vector<std::string> classifications = splitString(components[1], ',');
+            for (const auto &classification : classifications) {
+                const std::string errmsg(mSuppressions.nomsg.addClassificationSuppression(standard, classification));
+                if (!errmsg.empty()) {
+                    mLogger.printError(errmsg);
+                    return Result::Fail;
+                }
+            }
+        }
+
         // Filter errors
         else if (std::strncmp(argv[i], "--suppressions-list=", 20) == 0) {
             std::string filename = argv[i]+20;
