@@ -63,7 +63,7 @@ public:
         Certainty certainty;
         std::string symbolNames;
         std::set<std::string> macroNames;
-        Severity severity;
+        Severity severity{Severity::none};
 
         static SuppressionList::ErrorMessage fromErrorMessage(const ::ErrorMessage &msg, const std::set<std::string> &macroNames);
     private:

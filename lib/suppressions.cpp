@@ -143,18 +143,15 @@ std::string SuppressionList::parseXmlFile(const char *filename)
                 if (standardText == nullptr)
                     return "missing 'standard' attribute for classification '" + s.classification + "' in suppressions XML '" + std::string(filename) + "'";
                 if (!parseCodingStandard(standardText, s.standard))
-                    return "invalid coding standard '" + std::string(text) + "' in suppressions XML '" + std::string(filename) + "'";
+                    return "invalid coding standard '" + std::string(standardText) + "' in suppressions XML '" + std::string(filename) + "'";
             } else if (std::strcmp(name, "macroName") == 0) {
                 s.macroName = text;
                 s.type = SuppressionList::Type::macro;
             } else if (*text && std::strcmp(name, "hash") == 0)
                 s.hash = strToInt<std::size_t>(text);
             else
-                return std::string("unknown element '") + name + "' in suppressions XML '" + filename + "', expected id/fileName/lineNumber/symbolName/hash/classification/standard.";
+                return std::string("unknown element '") + name + "' in suppressions XML '" + filename + "', expected id/fileName/lineNumber/symbolName/hash/classification.";
         }
-
-        if ((s.standard == CodingStandard::none) != s.classification.empty())
-            return std::string(filename) + ": <standard> and <classification> must be specified together";
 
         std::string err = addSuppression(std::move(s));
         if (!err.empty())
@@ -595,7 +592,7 @@ void SuppressionList::dump(std::ostream & out, const std::string& filePath) cons
         if (suppression.hash > 0)
             out << " hash=\"" << suppression.hash << '\"';
         if (!suppression.classification.empty()) {
-            out << " classification=\"" << suppression.classification << '\"';
+            out << " classification=\"" << ErrorLogger::toxml(suppression.classification) << '\"';
             out << " standard=\"" << codingStandardString(suppression.standard) << '\"';
         }
         if (suppression.lineBegin != Suppression::NO_LINE)
