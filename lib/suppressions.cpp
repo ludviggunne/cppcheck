@@ -753,7 +753,7 @@ void SuppressionList::markUnmatchedInlineSuppressionsAsChecked(const TokenList &
 std::string SuppressionList::Suppression::toString() const
 {
     std::string s;
-    s += errorId;
+    s += classification.empty() ? errorId : codingStandardString(standard) + ":" + classification;
     if (!fileName.empty()) {
         s += ':';
         s += fileName;
