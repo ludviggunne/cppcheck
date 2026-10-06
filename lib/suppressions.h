@@ -234,7 +234,7 @@ public:
      * @param classification The classification.
      * @return error message. empty upon success
      */
-    std::string addClassificationSuppression(CodingStandard standard, const std::string &classification);
+    std::string addClassificationSuppression(const std::string &standard, const std::string &classification);
 
     /**
      * @brief Don't show this error. File and/or line are optional. In which case

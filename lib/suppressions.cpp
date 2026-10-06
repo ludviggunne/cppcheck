@@ -109,6 +109,15 @@ std::string SuppressionList::parseFile(std::istream &istr)
     return "";
 }
 
+static std::string makeClassificationSuppression(SuppressionList::Suppression &suppression, const std::string &standard, const std::string &classification)
+{
+    if (!parseCodingStandard(standard, suppression.standard))
+        return "invalid coding standard " + standard;
+    suppression.classification = classification;
+    strTolower(suppression.classification);
+    suppression.classification[0] = std::toupper(suppression.classification[0]);
+    return "";
+}
 
 std::string SuppressionList::parseXmlFile(const char *filename)
 {
@@ -138,16 +147,15 @@ std::string SuppressionList::parseXmlFile(const char *filename)
             else if (std::strcmp(name, "symbolName") == 0)
                 s.symbolName = text;
             else if (std::strcmp(name, "classification") == 0) {
-                s.classification = text;
-                if (s.classification.empty())
+                const std::string classification = text;
+                if (classification.empty())
                     return "empty classification in suppressions XML '" + std::string(filename) + "'";
-                strTolower(s.classification);
-                s.classification[0] = std::toupper(s.classification[0]);
-                const char *standardText = e2->Attribute("standard");
-                if (standardText == nullptr)
-                    return "missing 'standard' attribute for classification '" + s.classification + "' in suppressions XML '" + std::string(filename) + "'";
-                if (!parseCodingStandard(standardText, s.standard))
-                    return "invalid coding standard '" + std::string(standardText) + "' in suppressions XML '" + std::string(filename) + "'";
+                const char *standard = e2->Attribute("standard");
+                if (standard == nullptr)
+                    return "missing 'standard' attribute for classification '" + classification + "' in suppressions XML '" + std::string(filename) + "'";
+                const std::string err = makeClassificationSuppression(s, standard, classification);
+                if (!err.empty())
+                    return err;
             } else if (std::strcmp(name, "macroName") == 0) {
                 s.macroName = text;
                 s.type = SuppressionList::Type::macro;
@@ -335,18 +343,11 @@ std::string SuppressionList::addSuppressionLine(const std::string &line)
     }
 }
 
-std::string SuppressionList::addClassificationSuppression(CodingStandard standard, const std::string &classification)
+std::string SuppressionList::addClassificationSuppression(const std::string &standard, const std::string &classification)
 {
     Suppression suppression;
-    suppression.standard = standard;
-    suppression.classification = classification;
-    strTolower(suppression.classification);
-    suppression.classification[0] = std::toupper(suppression.classification[0]);
-    try {
-        return addSuppression(std::move(suppression));
-    } catch (const std::exception& e) {
-        return e.what();
-    }
+    const std::string err = makeClassificationSuppression(suppression, standard, classification);
+    return err.empty() ? addSuppression(std::move(suppression)) : err;
 }
 
 std::string SuppressionList::addSuppression(SuppressionList::Suppression suppression)

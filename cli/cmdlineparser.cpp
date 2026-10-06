@@ -1483,11 +1483,7 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
                 invalidFormat();
                 return Result::Fail;
             }
-            CodingStandard standard;
-            if (!parseCodingStandard(components[0], standard)) {
-                mLogger.printError("invalid coding standard '" + components[0] + "'");
-                return Result::Fail;
-            }
+            const std::string standard = components[0];
             const std::vector<std::string> classifications = splitString(components[1], ',');
             for (const auto &classification : classifications) {
                 if (classification.empty()) {
