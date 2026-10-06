@@ -113,6 +113,8 @@ static std::string makeClassificationSuppression(SuppressionList::Suppression &s
 {
     if (standard == "none" || !parseCodingStandard(standard, suppression.standard))
         return "invalid coding standard " + standard;
+    if (classification.empty())
+        return "empty classification";
     suppression.classification = classification;
     strTolower(suppression.classification);
     suppression.classification[0] = std::toupper(suppression.classification[0]);
