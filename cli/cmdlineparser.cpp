@@ -1474,10 +1474,13 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
 
         else if (std::strncmp(argv[i], "--suppress-classification=", 26) == 0) {
             const std::string full = argv[i]+26;
+            const auto invalidFormat = [&full, this]() {
+                mLogger.printError("invalid argument for --suppress-classification: " + full);
+                mLogger.printError("accepted format is STANDARD:CLASSIFICATION[,CLASSIFICATION...]");
+            };
             const std::vector<std::string> components = splitString(full, ':');
             if (components.size() != 2 || components[0].empty() || components[1].empty()) {
-                mLogger.printError("invalid argument for --suppress-classification: " + full);
-                mLogger.printError("accepted format is [coding standard]:[classification].");
+                invalidFormat();
                 return Result::Fail;
             }
             CodingStandard standard;
@@ -1487,6 +1490,10 @@ CmdLineParser::Result CmdLineParser::parseFromArgs(int argc, const char* const a
             }
             const std::vector<std::string> classifications = splitString(components[1], ',');
             for (const auto &classification : classifications) {
+                if (classification.empty()) {
+                    invalidFormat();
+                    return Result::Fail;
+                }
                 const std::string errmsg(mSuppressions.nomsg.addClassificationSuppression(standard, classification));
                 if (!errmsg.empty()) {
                     mLogger.printError(errmsg);
