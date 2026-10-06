@@ -103,6 +103,7 @@ private:
         TEST_CASE(suppressingSimplecppErrorsWhileFileReadFiles); // PR #1333
         TEST_CASE(suppressingSimplecppErrorsWhileFileReadFS); // PR #1333
         TEST_CASE(symbol);
+        TEST_CASE(classification);
 
         TEST_CASE(unusedFunctionFiles);
         TEST_CASE(unusedFunctionFS);
@@ -115,6 +116,7 @@ private:
 
         TEST_CASE(suppressUnmatchedSuppressions);
         TEST_CASE(addSuppressionDuplicate);
+        TEST_CASE(addClassificationSuppression);
         TEST_CASE(updateSuppressionState);
         TEST_CASE(addSuppressionLineMultiple);
 
@@ -1601,6 +1603,28 @@ private:
         ASSERT_EQUALS_ENUM(SuppressionList::Suppression::Result::Matched, s.isSuppressed(errorMsg));
     }
 
+    void classification() const {
+        SuppressionList::Suppression s;
+        SuppressionList::ErrorMessage e;
+
+        s.standard = CodingStandard::misraC2012;
+        s.classification = "mandatory";
+
+        e.errorId = "unusedVariable";
+        ASSERT_EQUALS_ENUM(SuppressionList::Suppression::Result::Checked, s.isSuppressed(e));
+
+        e.errorId = "uninitvar";
+        ASSERT_EQUALS_ENUM(SuppressionList::Suppression::Result::Matched, s.isSuppressed(e));
+
+        s.fileName = "file.cpp";
+        e.setFileName("file.cpp");
+        ASSERT_EQUALS_ENUM(SuppressionList::Suppression::Result::Matched, s.isSuppressed(e));
+
+        s.fileName = "file.cpp";
+        e.setFileName("other.cpp");
+        ASSERT_EQUALS_ENUM(SuppressionList::Suppression::Result::None, s.isSuppressed(e));
+    }
+
     void unusedFunctionInternal(unsigned int (TestSuppressions::*check)(const char[], const std::string &)) {
         ASSERT_EQUALS(0, (this->*check)("void f() {}\n", "unusedFunction"));
     }
@@ -1841,6 +1865,19 @@ private:
             SuppressionList supprList;
             ASSERT_EQUALS("unknown element 'eid' in suppressions XML 'suppressparsexml.xml', expected id/fileName/lineNumber/symbolName/hash/classification.", supprList.parseXmlFile(file.path().c_str()));
         }
+
+        // classification
+        {
+            ScopedFile file("suppressparsexml.xml",
+                            "<suppressions>\n"
+                            "<suppress>\n"
+                            "<classification standard=\"misra-c-2012\">mandatory</classification>\n"
+                            "</suppress>\n"
+                            "</suppressions>");
+
+            SuppressionList supprList;
+            ASSERT_EQUALS("", supprList.parseXmlFile(file.path().c_str()));
+        }
     }
 
     #define testXmlSuppressions(...) testXmlSuppressions_(__FILE__,__LINE__,__VA_ARGS__)
@@ -1912,6 +1949,32 @@ private:
 
         ASSERT_EQUALS("", supprs.addSuppression(s));
         ASSERT_EQUALS("suppression 'uninitvar' already exists", supprs.addSuppression(s));
+    }
+
+    void addClassificationSuppression() const {
+        SuppressionList supprs;
+
+        ASSERT_EQUALS("invalid coding standard invalid_standard", supprs.addClassificationSuppression("invalid_standard", ""));
+        ASSERT_EQUALS("invalid classification for misra-c-2012: L1", supprs.addClassificationSuppression("misra-c-2012", "L1"));
+        ASSERT_EQUALS("", supprs.addClassificationSuppression("misra-c-2012", "advisory"));
+        ASSERT_EQUALS("suppression 'misra-c-2012:Advisory' already exists", supprs.addClassificationSuppression("misra-c-2012", "Advisory"));
+        ASSERT_EQUALS("", supprs.addClassificationSuppression("misra-c-2012", "required"));
+        ASSERT_EQUALS("", supprs.addClassificationSuppression("misra-cpp-2023", "required"));
+
+        const auto list = supprs.getSuppressions();
+        ASSERT_EQUALS(3, list.size());
+
+        auto it = list.cbegin();
+        ASSERT_EQUALS_ENUM(CodingStandard::misraC2012, it->standard);
+        ASSERT_EQUALS("Advisory", it->classification);
+
+        ++it;
+        ASSERT_EQUALS_ENUM(CodingStandard::misraC2012, it->standard);
+        ASSERT_EQUALS("Required", it->classification);
+
+        ++it;
+        ASSERT_EQUALS_ENUM(CodingStandard::misraCpp2023, it->standard);
+        ASSERT_EQUALS("Required", it->classification);
     }
 
     void updateSuppressionState() const {
