@@ -111,12 +111,24 @@ std::string SuppressionList::parseFile(std::istream &istr)
 
 static std::string makeClassificationSuppression(SuppressionList::Suppression &suppression, const std::string &standard, const std::string &classification)
 {
-    if (!parseCodingStandard(standard, suppression.standard))
+    if (standard == "none" || !parseCodingStandard(standard, suppression.standard))
         return "invalid coding standard " + standard;
     suppression.classification = classification;
     strTolower(suppression.classification);
     suppression.classification[0] = std::toupper(suppression.classification[0]);
-    return "";
+    static const std::map<CodingStandard, std::set<std::string>> validClassifications = {
+        { CodingStandard::autosar, {"Required", "Advisory"} },
+        { CodingStandard::certC, {"L1", "L2", "L3"} },
+        { CodingStandard::certCpp, {"L1", "L2", "L3"} },
+        { CodingStandard::misraC2012, {"Mandatory", "Required", "Advisory"} },
+        { CodingStandard::misraCpp2008, {"Required", "Advisory", "Document"} },
+        { CodingStandard::misraCpp2023, {"Mandatory", "Required", "Advisory"} },
+        { CodingStandard::misraC2023, {"Mandatory", "Required", "Advisory"} },
+        { CodingStandard::misraC2025, {"Mandatory", "Required", "Advisory", "Disapplied"} },
+    };
+    return validClassifications.at(suppression.standard).count(suppression.classification) == 0 ?
+        "invalid classification for " + standard + ": " + classification :
+        "";
 }
 
 std::string SuppressionList::parseXmlFile(const char *filename)
