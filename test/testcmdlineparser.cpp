@@ -309,6 +309,15 @@ private:
         TEST_CASE(suppressSingleFile);
         TEST_CASE(suppressTwo);
         TEST_CASE(suppressTwoSeparate);
+        TEST_CASE(suppressClassificationSingle);
+        TEST_CASE(suppressClassificationMulti);
+        TEST_CASE(suppressClassificationDuplicates1);
+        TEST_CASE(suppressClassificationDuplicates2);
+        TEST_CASE(suppressClassificationInvalid1);
+        TEST_CASE(suppressClassificationInvalid2);
+        TEST_CASE(suppressClassificationInvalid3);
+        TEST_CASE(suppressClassificationInvalid4);
+        TEST_CASE(suppressClassificationInvalid5);
         TEST_CASE(exitcodeSuppressSingle);
         TEST_CASE(exitcodeSuppressSingleFile);
         TEST_CASE(exitcodeSuppressTwo);
@@ -438,6 +447,7 @@ private:
         TEST_CASE(libraryMultipleEmpty);
         TEST_CASE(libraryMultipleEmpty2);
         TEST_CASE(suppressXml);
+        TEST_CASE(suppressClassificationXml);
         TEST_CASE(suppressXmlEmpty);
         TEST_CASE(suppressXmlMissing);
         TEST_CASE(suppressXmlInvalid);
@@ -2014,6 +2024,77 @@ private:
         ASSERT_EQUALS(true, supprs->nomsg.isSuppressed(errorMessage("noConstructor", "file.cpp", 1U)));
     }
 
+    void suppressClassificationSingle() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:mandatory", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Success, parseFromArgs(argv));
+        ASSERT_EQUALS(true, supprs->nomsg.isSuppressed(errorMessage("uninitvar", "file.cpp", 1U)));
+        ASSERT_EQUALS(false, supprs->nomsg.isSuppressed(errorMessage("arrayIndexOutOfBounds", "file.cpp", 1U)));
+    }
+
+    void suppressClassificationMulti() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:mandatory,required", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Success, parseFromArgs(argv));
+        ASSERT_EQUALS(true, supprs->nomsg.isSuppressed(errorMessage("uninitvar", "file.cpp", 1U)));
+        ASSERT_EQUALS(true, supprs->nomsg.isSuppressed(errorMessage("arrayIndexOutOfBounds", "file.cpp", 1U)));
+    }
+
+    void suppressClassificationDuplicates1() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:required,required", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: suppression 'misra-c-2012:Required' already exists\n", logger->str());
+    }
+
+    void suppressClassificationDuplicates2() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:required", "--suppress-classification=misra-c-2012:required", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: suppression 'misra-c-2012:Required' already exists\n", logger->str());
+    }
+
+    void suppressClassificationInvalid1() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: invalid argument for --suppress-classification: \n"
+                      "cppcheck: error: accepted format is STANDARD:CLASSIFICATION[,CLASSIFICATION...]\n",
+                      logger->str());
+    }
+
+    void suppressClassificationInvalid2() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: invalid argument for --suppress-classification: misra-c-2012\n"
+                      "cppcheck: error: accepted format is STANDARD:CLASSIFICATION[,CLASSIFICATION...]\n",
+                      logger->str());
+    }
+
+    void suppressClassificationInvalid3() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: invalid argument for --suppress-classification: misra-c-2012:\n"
+                      "cppcheck: error: accepted format is STANDARD:CLASSIFICATION[,CLASSIFICATION...]\n",
+                      logger->str());
+    }
+
+    void suppressClassificationInvalid4() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=misra-c-2012:invalid", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: invalid classification for misra-c-2012: invalid\n", logger->str());
+    }
+
+    void suppressClassificationInvalid5() {
+        REDIRECT;
+        const char * const argv[] = {"cppcheck", "--suppress-classification=invalid:mandatory", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Fail, parseFromArgs(argv));
+        ASSERT_EQUALS("cppcheck: error: invalid coding standard invalid\n", logger->str());
+    }
+
     void exitcodeSuppressSingle() {
         REDIRECT;
         const char * const argv[] = {"cppcheck", "--exitcode-suppress=uninitvar", "file.cpp"};
@@ -3021,6 +3102,19 @@ private:
         ASSERT_EQUALS(1, supprsNomsg.size());
         const auto it = supprsNomsg.cbegin();
         ASSERT_EQUALS("uninitvar", it->errorId);
+    }
+
+    void suppressClassificationXml() {
+        REDIRECT;
+        ScopedFile file("suppress.xml",
+                        "<suppressions>\n"
+                        "<suppress>\n"
+                        "<classification standard=\"misra-c-2012\">mandatory</classification>\n"
+                        "</suppress>\n"
+                        "</suppressions>");
+        const char * const argv[] = {"cppcheck", "--suppress-xml=suppress.xml", "file.cpp"};
+        ASSERT_EQUALS_ENUM(CmdLineParser::Result::Success, parseFromArgs(argv));
+        ASSERT_EQUALS(true, supprs->nomsg.isSuppressed(errorMessage("uninitvar", "file.cpp", 1U)));
     }
 
     void suppressXmlEmpty() {
